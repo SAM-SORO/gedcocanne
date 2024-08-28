@@ -94,3 +94,5 @@ git config --global core.autocrlf false
 false : Désactive la conversion automatique.
 input : Convertit CRLF en LF lors de l'ajout, mais laisse les LF intacts.
 true : Convertit LF en CRLF lors de l'extraction et inversement lors de l'ajout.
+LF (Line Feed) : Utilisé principalement sur les systèmes UNIX/Linux et macOS.
+CRLF (Carriage Return + Line Feed) : Utilisé principalement sur les systèmes Windows.
