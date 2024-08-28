@@ -1,0 +1,385 @@
+import 'package:flutter/material.dart';
+
+class BilanBroyageScreen extends StatefulWidget {
+  const BilanBroyageScreen({super.key});
+
+  @override
+  State<BilanBroyageScreen> createState() => _BilanbroyageState();
+}
+
+class _BilanbroyageState extends State<BilanBroyageScreen> {
+
+  final List<Map<String, String>> data = [
+      {'date': 'Aujourd\'hui', 'quantity': '23 tonne'},
+      {'date': '15/07/2024', 'quantity': '22 tonne'},
+      {'date': '14/07/2024', 'quantity': '22 tonne'},
+      {'date': '13/07/2024', 'quantity': '22 tonne'},
+      {'date': 'Aujourd\'hui', 'quantity': '23 tonne'},
+      {'date': '15/07/2024', 'quantity': '22 tonne'},
+      {'date': '14/07/2024', 'quantity': '22 tonne'},
+      {'date': '13/07/2024', 'quantity': '22 tonne'},
+      {'date': 'Aujourd\'hui', 'quantity': '23 tonne'},
+      {'date': '15/07/2024', 'quantity': '22 tonne'},
+      {'date': '14/07/2024', 'quantity': '22 tonne'},
+      {'date': '13/07/2024', 'quantity': '22 tonne'},
+      // Ajoutez plus de données ici si nécessaire
+    ];
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text("Stock Broyer"), backgroundColor: Colors.white,),
+      body: Center(
+        child: Column(
+          // Container(
+              //   decoration: BoxDecoration(
+              //     borderRadius: BorderRadius.circular(12),
+              //     color: Colors.white,
+              //     boxShadow: [
+              //       BoxShadow(
+              //         color: Colors.grey.withOpacity(0.3),
+              //         blurRadius: 5,
+              //         spreadRadius: 2,
+              //         offset: const Offset(0, 3),
+              //       ),
+              //     ],
+              //   ),
+              //   child: Padding(
+              //     padding: const EdgeInsets.all(16.0),
+              //     child: Column(
+              //       children: [
+              //         Row(
+              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //           children: [
+              //             Text(
+              //               'Date',
+              //               style : GoogleFonts.poppins(
+              //                 fontWeight: FontWeight.bold,
+              //                 fontSize: 16,
+              //               ),
+              //             ),
+              //             Text(
+              //               'Quantité',
+              //               style: GoogleFonts.poppins(
+              //                 fontWeight: FontWeight.bold,
+              //                 fontSize: 16,
+              //               ),
+              //             ),
+              //           ],
+              //         ),
+              //         const Divider(),
+              //         Column( // Encapsulation des éléments dans une colonne pour le défilement
+              //           children: data.map((item) {
+              //             return Padding(
+              //               padding: const EdgeInsets.symmetric(vertical: 8.0),
+              //               child: Row(
+              //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              //                 children: [
+              //                   Text(item['date']!),
+              //                   Text(item['quantity']!),
+              //                 ],
+              //               ),
+              //             );
+              //           }).toList(),
+              //         ),
+              //       ],
+              //     ),
+              //   ),
+              // ),
+          
+        ),
+      ),
+    );
+  }
+}
+
+
+/////////////////////////////////////////// pull to refresh caamions en attentes
+
+Expanded(
+  child: RefreshIndicator(
+    onRefresh: _chargerCamionsAttente,
+    child: _isLoading
+        ? const Center(child: CircularProgressIndicator()) // Afficher le CircularProgressIndicator si en chargement
+        : ListView(
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  'Camions en attente',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+              ),
+              camionsAttente.isEmpty
+                  ? Center(
+                      child: Text(
+                        'Aucun camion en attente',
+                        style: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                    )
+                  : Column(
+                      children: List.generate(camionsAttente.length, (index) {
+                        var camion = camionsAttente[index];
+                        var datePremPeseeFormater = DateFormat('dd/MM/yy HH:mm:ss').format(DateTime.parse(camion['DATEHEUREP1']!));
+                        return Dismissible(
+                          key: Key(camion['VE_CODE']!), // Clé unique pour chaque élément
+                          direction: DismissDirection.startToEnd,
+                          onDismissed: (direction) async {
+                            await _enregistrerCamion(camion, index); // Enregistrer le camion lors du glissement
+                          },
+                          background: Container(
+                            color: Colors.green, // Couleur d'arrière-plan lors du glissement
+                            alignment: Alignment.center,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            child: const Icon(Icons.check, color: Colors.white),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.only(bottom: 15),
+                            margin: const EdgeInsets.only(left: 20),
+                            child: Card(
+                              color: camion['TECH_COUPE'] == 'RV' || camion['TECH_COUPE'] == 'RB' ? const Color(0xFFF8E7E7) : Colors.white,
+                              child: ListTile(
+                                title: Text(camion['VE_CODE']!, style: GoogleFonts.poppins(fontSize: 14)),
+                                subtitle: Text('poidsP1 : ${camion['PS_POIDSP1']} tonne, $datePremPeseeFormater', style: GoogleFonts.poppins(fontSize: 14)),
+                                trailing: Checkbox(
+                                  value: false,
+                                  onChanged: (bool? value) async {
+                                    if (value == true) {
+                                      await _enregistrerCamion(camion, index); // Enregistrer le camion si la case est cochée
+                                    }
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                        );
+                      }),
+                    ),
+            ],
+          ),
+  ),
+),
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+INTERFACE BILAN
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+
+class BilanCourScreen extends StatefulWidget {
+  const BilanCourScreen({super.key});
+
+  @override
+  State<BilanCourScreen> createState() => _BilancoursState();
+}
+
+class _BilancoursState extends State<BilanCourScreen> {
+  // Variables pour stocker les heures sélectionnées
+  TimeOfDay? startTime;
+  TimeOfDay? endTime;
+
+  // Contrôleurs pour les TextFields
+  final TextEditingController startTimeController = TextEditingController();
+  final TextEditingController endTimeController = TextEditingController();
+
+  // Variables pour stocker les résultats
+  double? stockEntree;
+  double? stockActuel;
+  double? stockBroyer;
+  double? stockTable;
+
+  @override
+  void initState() {
+    super.initState();
+    _calculateTonnage();
+  }
+
+  // Fonction pour calculer le tonnage
+  Future<void> _calculateTonnage() async {
+    final startHour = startTime?.hour ?? 0;
+    final endHour = endTime?.hour ?? 23;
+
+    // // Utilisation des heures pour filtrer les données (à implémenter)
+    // final quantiteEntreeCours = await tonnageEntreeCours(startHour, endHour);
+    // final tonnageActuelleCours = await stockActuelleCours(startHour, endHour);
+    // final tonnageBroyer = await stockBroyerTable(startHour, endHour);
+    // final tonnageDechargerTable = await tonnageCanneDechargerDirect(startHour, endHour);
+
+    // setState(() {
+    //   stockEntree = quantiteEntreeCours;
+    //   stockActuel = tonnageActuelleCours;
+    //   stockBroyer = tonnageBroyer;
+    //   stockTable = tonnageDechargerTable;
+    // });
+  }
+
+  // Fonction pour sélectionner une heure
+  Future<void> _selectTime(BuildContext context, bool isStartTime) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+      builder: (BuildContext context, Widget? child) {
+        return Theme(
+          data: Theme.of(context).copyWith(
+            colorScheme: const ColorScheme.light(
+              primary: Colors.pink, // Couleur du bouton "OK"
+              onPrimary: Colors.white, // Couleur du texte du bouton
+              onSurface: Colors.black, // Couleur du texte sur la surface
+            ),
+          ),
+          child: child!,
+        );
+      },
+    );
+
+    if (picked != null) {
+      setState(() {
+        if (isStartTime) {
+          startTime = picked;
+          startTimeController.text = picked.format(context); // Mise à jour du texte
+        } else {
+          endTime = picked;
+          endTimeController.text = picked.format(context); // Mise à jour du texte
+        }
+        _calculateTonnage(); // Recalculer le tonnage lorsque l'heure est modifiée
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Bilan du stock')),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          await _calculateTonnage(); // Recalculer le tonnage lors du rafraîchissement
+        },
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(40.0),
+          child: GestureDetector(
+            onTap: () {
+              FocusScope.of(context).unfocus();
+            },
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      "Bilan du stock",
+                      style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _selectTime(context, true),
+                        child: AbsorbPointer(
+                          child: TextField(
+                            controller: startTimeController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Heure de début',
+                              hintText: 'Sélectionner l\'heure',
+                              suffixIcon: const Icon(Icons.access_time),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => _selectTime(context, false),
+                        child: AbsorbPointer(
+                          child: TextField(
+                            controller: endTimeController,
+                            keyboardType: TextInputType.number,
+                            decoration: InputDecoration(
+                              labelText: 'Heure de fin',
+                              hintText: 'Sélectionner l\'heure',
+                              suffixIcon: const Icon(Icons.access_time),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                buildTonnageInfo('Tonnage de la canne dechargé dans la cour', '${stockEntree?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                const SizedBox(height: 16),
+                buildTonnageInfo('Tonnage de la canne dechargé directement dans la cour', '${stockTable?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                const SizedBox(height: 16),
+                buildTonnageInfo('Tonnage de la canne actuel dans la cour', '${stockActuel?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                const SizedBox(height: 16),
+                buildTonnageInfo('Tonnage broyé', '${stockBroyer?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget buildTonnageInfo(String title, String quantity) {
+    return Container(
+      height: 100,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(12),
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withOpacity(0.3),
+            blurRadius: 5,
+            spreadRadius: 2,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color.fromARGB(255, 226, 30, 233),
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                child: Text(
+                  title,
+                  style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
+                ),
+              ),
+            ],
+          ),
+          Text(
+            quantity,
+            style: GoogleFonts.poppins(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+*/
