@@ -1,18 +1,18 @@
--- Création de la base de données si elle n'existe pas
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'cocages')
+-- Crï¿½ation de la base de donnï¿½es si elle n'existe pas
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'gedcocanne')
 BEGIN
-    CREATE DATABASE cocages;
+    CREATE DATABASE gedcocanne;
 END
 GO
 
-USE cocages;
+USE gedcocanne;
 GO
 
--- Création de la table si elle n'existe pas
+-- Crï¿½ation de la table si elle n'existe pas
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'F_PREMPESEE')
 BEGIN
     CREATE TABLE F_PREMPESEE (
-        ID INT IDENTITY(1,1) PRIMARY KEY, -- Colonne identifiant auto-incrémenté
+        ID INT IDENTITY(1,1) PRIMARY KEY, -- Colonne identifiant auto-incrï¿½mentï¿½
         VE_CODE NVARCHAR(50) NOT NULL,
         PS_CODE NVARCHAR(50) NOT NULL, -- Ajout de la colonne PS_CODE
         PS_POIDSP1 DECIMAL(10, 2) NOT NULL,
@@ -22,7 +22,7 @@ BEGIN
 END
 GO
 
--- Insertion des données avec PS_CODE
+-- Insertion des donnï¿½es avec PS_CODE
 INSERT INTO F_PREMPESEE (VE_CODE, PS_CODE, PS_POIDSP1, DATEHEUREP1, TECH_COUPE)
 VALUES 
     ('xx1', 'PC1', 10.00, CONVERT(DATETIME, '2025-10-20 10:30:00', 120), 'RV'),

@@ -1,6 +1,6 @@
-import 'package:cocages/models/agent.dart';
-import 'package:cocages/services/api_service.dart';
-import 'package:cocages/services/database.dart';
+import 'package:gedcocanne/models/agent.dart';
+import 'package:gedcocanne/services/api_service.dart';
+import 'package:gedcocanne/services/database.dart';
 import 'package:isar/isar.dart';
 
 // Fonction pour récupérer les agents non synchronisés

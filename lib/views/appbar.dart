@@ -1,4 +1,4 @@
-import 'package:cocages/assets/imagesReferences.dart';
+import 'package:gedcocanne/assets/imagesReferences.dart';
 import 'package:flutter/material.dart';
 
 class AppbarView extends StatelessWidget implements PreferredSizeWidget {

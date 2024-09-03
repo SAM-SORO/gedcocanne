@@ -1,4 +1,4 @@
-import 'package:cocages/views/home.dart';
+import 'package:gedcocanne/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -7,33 +7,54 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    //
-    return OverlaySupport.global(child: MaterialApp(
-      title: 'COCAGES',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: GoogleFonts.robotoTextTheme(), // Appliquer Roboto à tout le texte
-        primarySwatch: Colors.blue,
-          appBarTheme: const AppBarTheme(
-          // backgroundColor: Colors.white,
-          elevation: 4, // Ombre pour l'AppBar
-          iconTheme: IconThemeData(color: Colors.black),
-          titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
-          
-        ),
-          useMaterial3: true,
-      ),
-      home: const Home(),
-    ),
-  );
-    
-     
-  }
+  _MyAppState createState() => _MyAppState();
 }
 
+class _MyAppState extends State<MyApp> {
+  bool _isDarkMode = false;
+
+  void toggleTheme(bool isDarkMode) {
+    setState(() {
+      _isDarkMode = isDarkMode;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return OverlaySupport.global(
+      child: MaterialApp(
+        title: 'gedcocanne',
+        debugShowCheckedModeBanner: false,
+        themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
+        theme: ThemeData(
+          textTheme: GoogleFonts.robotoTextTheme(),
+          primarySwatch: Colors.blue,
+          appBarTheme: const AppBarTheme(
+            elevation: 4,
+            iconTheme: IconThemeData(color: Colors.black),
+            titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+          ),
+          useMaterial3: true,
+        ),
+        // darkTheme: ThemeData.dark(),
+       darkTheme: ThemeData(
+          textTheme: GoogleFonts.robotoTextTheme(
+            ThemeData.dark().textTheme.apply(bodyColor: Colors.white, displayColor: Colors.white),
+          ),
+          appBarTheme: const AppBarTheme(
+            elevation: 4,
+            iconTheme: IconThemeData(color: Colors.white),
+            titleTextStyle: TextStyle(color: Colors.white, fontSize: 20),
+          ),
+          scaffoldBackgroundColor: Colors.black,
+          colorScheme: ColorScheme.fromSwatch(primarySwatch: Colors.blue).copyWith(surface: Colors.black),
+        ),
+        home: Home(toggleTheme: toggleTheme, isDarkMode: _isDarkMode),
+      ),
+    );
+  }
+}

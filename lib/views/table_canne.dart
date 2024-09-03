@@ -1,6 +1,6 @@
 import 'dart:async';
-import 'package:cocages/services/api_service.dart';
-import 'package:cocages/services/decharge_services.dart';
+import 'package:gedcocanne/auth/services/login_services.dart';
+import 'package:gedcocanne/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -21,11 +21,10 @@ class _TableCanneState extends State<TableCanne> {
   // Liste des camions en attente
   List<Map<String, String>> camionsAttente = [];
   // Liste des camions déjà déchargés
-  List<dynamic> camionsDechargerTable = [];
+  List<Map<String, dynamic>> camionsDechargerTable = [];
   // Booléen pour suivre si le chargement des camions en attente est en cours ou pas
   bool _isLoading = true;
   
-
   Timer? _timer; // Variable pour stocker le Timer
   
 
@@ -50,7 +49,6 @@ class _TableCanneState extends State<TableCanne> {
   @override
   Widget build(BuildContext context) {
     int nombreDeCamionEnAttente  = camionsAttente.length ;
-    int nombreDeCamionDechargerTable  = camionsDechargerTable.length ;
     return Scaffold(
       body: Row(
         children: <Widget>[
@@ -93,7 +91,8 @@ class _TableCanneState extends State<TableCanne> {
                                     key: Key(camion['VE_CODE']!), // Clé unique pour chaque élément
                                     direction: DismissDirection.startToEnd,
                                     onDismissed: (direction) async {
-                                      await _enregistrerCamionTable(camion, index); // Enregistrer le camion lors du glissement
+                                      bool success = await _enregistrerCamionTable(camion, index); // Enregistrer le camion lors du glissement                                   
+                                      if (success) await  _chargerCamionsDechargerTableDerniereHeure();
                                     },
                                     background: Container(
                                       color: Colors.green, // Couleur d'arrière-plan lors du glissement
@@ -113,7 +112,9 @@ class _TableCanneState extends State<TableCanne> {
                                             value: false,
                                             onChanged: (bool? value) async {
                                               if (value == true) {
-                                                await _enregistrerCamionTable(camion, index); // Enregistrer le camion si la case est cochée
+                                                bool success = await _enregistrerCamionTable(camion, index); // Enregistrer le camion si la case est cochée
+
+                                                if (success) await  _chargerCamionsDechargerTableDerniereHeure();
                                               }
                                             },
                                           ),
@@ -134,47 +135,92 @@ class _TableCanneState extends State<TableCanne> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshCamionDechargerTable,
-              child: Column(
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      'Camion Déchargé sur la table dernière heure($nombreDeCamionDechargerTable)',
-                      style:GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                  Expanded(
-                    child: ListView.builder(
-                      itemCount: camionsDechargerTable.length,
-                      itemBuilder: (context, index) {
-                        var camion = camionsDechargerTable[index];
-                        
-                        return Container(
-                            color:  Colors.white,
-                            child: ListTile(
-                            title: Text('${camion.veCode} (${camion.parcelle})',style: GoogleFonts.poppins(fontSize: 14)), // accès direct à la propriété
-                            // var datePremPeseeFormater = DateFormat('dd/MM/yyyy HH:mm:ss').format(camion.dateHeureP1); // accès direct à la propriété
-                            // subtitle: Text(
-                            //   'poidsP1: ${camion.poidsP1} tonne, ${camion.poidsP2 != null ? 'poidsP2: ${camion.poidsP2} tonne, ' : ''} $datePremPeseeFormater',
-                            //   style: GoogleFonts.poppins(fontSize: 14)
-                            // ),
-                            subtitle: Text(
-                              'poidsP1: ${camion.poidsP1} tonnes, ${camion.poidsP2 != null ? 'poidsP2: ${camion.poidsP2} tonnes, ' : 'PoidsTare ${camion.poidsTare} tonnes, '} poidsNet: ${camion.poidsNet} tonnes',
-                              style: GoogleFonts.poppins(fontSize: 14)
-                            ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(
+                            'Camion Déchargé sur la table dernière heure (${camionsDechargerTable.length})',
+                            style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
-                          
-                        );
+                        ),
+                        Expanded(
+                          child: camionsDechargerTable.isEmpty
+                            ? Center(
+                                child: ListView(
+                                  children: [
+                                    const SizedBox(height: 50),
+                                    Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Text(
+                                            "Aucun camion déchargé récemment.",
+                                            style: GoogleFonts.poppins(fontSize: 16, color: Colors.grey),
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  ],
+                                ),
+                              )
+                            : ListView.builder(
+                                itemCount: camionsDechargerTable.length,
+                                itemBuilder: (context, index) {
+                                  var camion = camionsDechargerTable[index];
 
-                      },
+                                  final dateDecharg = DateTime.parse(camion['dateHeureDecharg']);
+                                  final dateDechargFormated = DateFormat('dd/MM/yy HH:mm:ss').format(dateDecharg);
+
+                                  return Dismissible(
+                                    key: Key(camion['veCode']),
+                                    direction: DismissDirection.endToStart,
+                                    movementDuration: const Duration(seconds: 4),
+                                      onDismissed: (direction) async {
+                                      // Appeler la fonction pour supprimer le camion
+                                      // Appeler la fonction pour supprimer le camion et attendre le résultat
+                                      bool success = await _supprimerCamionDechargerTable(camion['veCode'], camion['dateHeureDecharg']);
+                                      
+                                      // Supprimer l'élément de la liste locale si la suppression a réussi
+                                      if (success) {
+                                        setState(() {
+                                          camionsDechargerTable.removeAt(index);
+                                        });
+                                        _chargerCamionsAttente();
+                                      }
+                                    },
+                                    background: Container(
+                                      color: Colors.red,
+                                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                                      alignment: AlignmentDirectional.centerEnd,
+                                      child: const Icon(Icons.delete, color: Colors.white),
+                                    ),
+                                    child: Card(
+                                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
+                                      child: ListTile(
+                                        title: Text(
+                                          '${camion['veCode']} (${camion['parcelle']})',
+                                          style: GoogleFonts.poppins(fontSize: 14),
+                                        ),
+                                        subtitle: Text(
+                                          'poidsP1: ${camion['poidsP1']} tonnes, ${camion['poidsP2'] != null ? 'poidsP2: ${camion['poidsP2']} tonnes, ' : 'Poids Tare ${camion['poidsTare']} tonnes, '} poids Net: ${camion['poidsNet']} tonnes $dateDechargFormated',
+                                          style: GoogleFonts.poppins(fontSize: 14),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                        ),
+                      ],
                     ),
-                  ),
-                ],
-              ),
             ),
           ),
-        
-          
+
         ],
       ),
       
@@ -187,51 +233,57 @@ class _TableCanneState extends State<TableCanne> {
   Future<void> _chargerCamionsAttente() async {
     try {
       // Appeler la fonction avec un timeout
-      camionsAttente = await getCamionAttenteFromAPI();
+      final List<Map<String, String>> camionsAttenteData = await getCamionAttenteFromAPI();
+      List<Map<String, dynamic>> camionsCoursData = await getCamionDechargerCoursFromAPI();
+      List<Map<String, dynamic>> camionsTableData = await getCamionDechargerTableFromAPI();
 
-      // Appeler la fonction pour récupérer les camions déchargés
-      final camionsCours = await listerCamionDechargerCours(); // Liste des camions déchargés (DechargerTable)
-      final camionsTable = await listerCamionDechargerTable(); // Liste des camions déchargés (DechargerTable)
+      // Vérifier si les données sont nulles ou vides
+      if (camionsAttenteData.isEmpty) {
+        camionsAttente = []; // Assurez-vous que camionsAttente est une liste vide si aucune donnée n'est récupérée
+      } else {
+        camionsAttente = camionsAttenteData;
+      }
+
+      if (camionsCoursData.isEmpty) {
+        camionsCoursData = [];
+      }
+
+      if (camionsTableData.isEmpty) {
+        camionsTableData = [];
+      }
 
       // Combiner les camions déchargés de DechargerCours et DechargerTable
-      // final allCamionsDecharger = [
-      //   ...camionsDechargerTable.map((camion ) => camion  ),
-      //   ...camionsCours
-      // ];
-
-      final List<dynamic> allCamionsDecharger = [
-        ...camionsTable,
-        ...camionsCours
+      final List<Map<String, dynamic>> allCamionsDecharger = [
+        ...camionsTableData,
+        ...camionsCoursData,
       ];
-
 
       // Filtrer les camions en attente pour exclure ceux déjà déchargés
       final filteredCamionsAttente = camionsAttente.where((camionAttente) {
         DateTime dateHeureP1Attente = DateTime.parse(camionAttente['DATEHEUREP1']!);
 
         return !allCamionsDecharger.any((camion) {
-         
-          DateTime dateHeureP1Decharge = camion.dateHeureP1; 
+          DateTime dateHeureP1Decharge = DateTime.parse(camion['dateHeureP1']); // Assurez-vous que les clés et formats sont corrects
 
           return dateHeureP1Attente.isAtSameMomentAs(dateHeureP1Decharge);
         });
       }).toList();
 
-       if (mounted) {  
+      if (mounted) {  
         setState(() {  
           camionsAttente = filteredCamionsAttente; // Met à jour la liste des camions  
           _isLoading = false; // Mise à jour de l'état de chargement  
         });  
-      } 
+      }
     } catch (e) {
-      //c'est important de verifier si c'est monter pour eviter des erreur d'appel a un context qui n'existe plus
-       if (mounted) {
+      // Vérifier si le widget est monté avant d'appeler setState
+      if (mounted) {
         setState(() {   
           _isLoading = false; // Mise à jour de l'état de chargement  
         });  
-        _showMessageWithTime("le chargement des camions en attenter à echoué. Vérifiez votre connexion internet.",5000);
+        _showMessageWithTime("Le chargement des camions en attente a échoué. Connectez vous au réseau.", 5000);
       }
-    } 
+    }
   }
 
 
@@ -244,33 +296,18 @@ class _TableCanneState extends State<TableCanne> {
   // Fonction pour récupérer les camions déchargés sur la table a canne
   Future<void> _chargerCamionsDechargerTableDerniereHeure() async {
     try {
-      final camions = await listerCamionDechargerTableDerniereHeure();
+      final camions = await getCamionDechargerTableDerniereHeureFromAPI();
       
       setState(() {
         camionsDechargerTable = camions;
   
       });
     } catch (err) {
-      _showMessageWithTime('Erreur lors de la récupération des camions déchargés enregistrer dans la base de donnee local', 4000);
+      _showMessageWithTime('Le chargement des camions déchargés à  échoué. Connectez vous au réseau.', 4000);
     }
   }
 
-  /*
-  Future<void> _updtatePoidsP2() async {
-    String updated = await getPoidsP2FromFPESEE(); 
-    if (updated == "error"){    
-      _showMessageWithTime("La Mise a jour du poids P2 camions déchargés à echoué . Veuillez vérifier également votre connexion internet.",6000);
-    } 
-    // else if (updated == "true") {
-    //   _showMessageWithTime("La Recuperation du poids de la deuxieme pesee des camons déchargés effectuée avec succès",4000);
-
-    // }
-    // else{
-    //   _showMessageWithTime("Les Poids de la deuxieme pesee des camions dechargés ont été recuperé",4000);
-    // }
-  }
-  */
-
+ 
 
 
   // pour éviter les conflits de mise a jour manuelle et automatique lorsque les deux se font au meme moment
@@ -282,7 +319,7 @@ class _TableCanneState extends State<TableCanne> {
       });
       //await _updtatePoidsP2();
       //await synchroniserDonnee;
-      //await _chargerCamionsDechargerTableDerniereHeure();
+      await _chargerCamionsDechargerTableDerniereHeure();
       widget.updateP2AndSyncAndResetTimer();
 
       setState(() {
@@ -294,44 +331,72 @@ class _TableCanneState extends State<TableCanne> {
   }
 
 
-  Future<void> _enregistrerCamionTable(Map<String, String> camion, int index) async {
+  //enregistrer le camion via l'API en utilisant les informations fournies
+  Future<bool> _enregistrerCamionTable(Map<String, String> camion, int index) async {
     try {
-      final veCode = camion['VE_CODE']!;
-      final poidsP1 = double.parse(camion['PS_POIDSP1']!);
-      final dateHeureP1 = DateTime.parse(camion['DATEHEUREP1']!);
-      final techCoupe = camion['TECH_COUPE']!;
-      final parcelle = camion['PS_CODE']!;
+      // Extraire les informations du camion
+      String veCode = camion['VE_CODE']!;
+      double poidsP1 = double.parse(camion['PS_POIDSP1']!);
+      String techCoupe = camion['TECH_COUPE']!;
+      String parcelle = camion['PS_CODE']!;
+      DateTime dateHeureP1 = DateTime.parse(camion['DATEHEUREP1']!);
+      String? matriculeAgent = await getCurrentUserMatricule();
 
-      bool success;
+      // Récupérer le poidsTare via l'API
+      double? poidsTare = await recupererPoidsTare(veCode: veCode, dateHeureP1: dateHeureP1);
 
-      // Enregistrer dans DechargerTable
-      success = await enregistrerDechargementTable(
+      if (poidsTare == null) {
+        // Afficher une notification ou un message d'erreur si le poidsTare est introuvable
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: poidsTare introuvable pour $veCode')),
+        );
+        return false;
+      }
+
+      // Appeler l'API pour enregistrer le camion
+      bool success = await saveDechargementTableFromAPI(
         veCode: veCode,
         poidsP1: poidsP1,
         techCoupe: techCoupe,
-        parcelle:  parcelle,
-        dateHeureP1: dateHeureP1,       
+        parcelle: parcelle,
+        dateHeureP1: dateHeureP1,
+        poidsTare: poidsTare,
+        matricule: matriculeAgent!,
       );
 
       if (success) {
         setState(() {
-          camionsAttente.removeAt(index); // Retirer le camion de la liste des camions en attente
+          camionsAttente.removeAt(index); // Supprimer le camion de la liste après l'enregistrement
         });
-
-        _chargerCamionsDechargerTableDerniereHeure();
-          
-        //_showMessageWithTime('Déchargement sur la table à canne enregistré avec succès.', 3000);
-
-      } else {
-        _showMessageWithTime('Échec de l\'enregistrement du camion déchargé sur la table à canne.',5000);
       }
 
-      
-    } catch (err) {
-      _showMessageWithTime('Erreur lors de l\'enregistrement du camion: $err',5000);
+
+
+      return success;
+
+    } catch (e) {
+      // Gestion des erreurs
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de l\'enregistrement du camion: $e')),
+      );
+      return false;
     }
   }
 
+
+  Future<bool> _supprimerCamionDechargerTable(String veCode, String dateHeureDecharg) async {
+    bool success = await deleteCamionDechargerTableFromAPI(veCode, dateHeureDecharg);
+    if (success) {
+      // setState(() {
+      //   camionsDechargerTable.removeWhere((camion) => camion['VE_CODE'] == veCode && camion['dateHeureDecharg'] == dateHeureDecharg);
+      // });
+      return true;
+    } else {
+      // Afficher un message d'erreur ou effectuer une autre action en cas d'échec
+      _showMessageWithTime('Erreur lors de la suppression du camion.', 4000 );
+      return false;
+    }
+  }
 
 
   // Fonction pour afficher les messages en precisant le temps que cela doit faire
@@ -343,7 +408,6 @@ class _TableCanneState extends State<TableCanne> {
         duration: Duration(milliseconds: milliseconds),
       ),
     );
-}
-
+  }
 
 }

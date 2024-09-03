@@ -1,22 +1,23 @@
 import 'dart:async';
-import 'package:cocages/services/decharge_services.dart';
-import 'package:cocages/services/sync_agent_service.dart';
-import 'package:cocages/services/sync_decharg_cours_service.dart';
-import 'package:cocages/services/sync_decharg_table_service.dart';
-import 'package:cocages/services/sync_table_canne_service.dart';
+import 'package:gedcocanne/services/api_service.dart';
+import 'package:gedcocanne/services/sync_agent_service.dart';
 import 'package:flutter/material.dart';
-import 'package:cocages/auth/services/login_services.dart';
-import 'package:cocages/auth/views/login_screen.dart';
-import 'package:cocages/views/appbar.dart';
-import 'package:cocages/views/cours_canne.dart';
-import 'package:cocages/views/sidebar.dart';
-import 'package:cocages/views/table_canne.dart';
+import 'package:gedcocanne/auth/services/login_services.dart';
+import 'package:gedcocanne/auth/views/login_screen.dart';
+import 'package:gedcocanne/views/appbar.dart';
+import 'package:gedcocanne/views/cours_canne.dart';
+import 'package:gedcocanne/views/sidebar.dart';
+import 'package:gedcocanne/views/table_canne.dart';
 import 'package:google_fonts/google_fonts.dart';
 // import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 
 class Home extends StatefulWidget {
-  const Home({super.key});
+  final Function(bool) toggleTheme;
+  final bool isDarkMode; // Passer l'état du mode sombre
+
+  const Home({super.key, required this.toggleTheme, required this.isDarkMode});
+
 
   @override
   State<Home> createState() => _HomeState();
@@ -86,6 +87,10 @@ class _HomeState extends State<Home> {
         resetSyncTimer: _resetSyncTimer,
         //permettra de reprendre  le timer de mise ajour du poidsP2
         cancelSyncAndUpdatingTimer: _cancelSyncAndUpdatingP2Timer,
+        
+        toggleTheme: widget.toggleTheme, // Passer la fonction toggleTheme
+
+        isDarkMode: widget.isDarkMode, // Passer l'état du mode sombre
       ),
 
        bottomNavigationBar: SalomonBottomBar(
@@ -125,11 +130,12 @@ class _HomeState extends State<Home> {
         isSwitched: _isSwitched,
       ),
   ];
+  
 
-  //Lancer le timer pour la synchronisation des donnee chaque 5minutes
+  //Lancer le timer pour la synchronisation des donnee chaque 30minutes
   void _startSyncDonneeTimer() {
-    _timerSync = Timer.periodic(const Duration(minutes: 10), (timer) async {
-      if (await _thereAreSynchronisation()){
+    _timerSync = Timer.periodic(const Duration(minutes: 30), (timer) async {
+      if (await thereAreSynchronisationForAgent()){
         _synchroniserDonnee();
       }
     });
@@ -140,7 +146,7 @@ class _HomeState extends State<Home> {
   //Lancer le timer de recuperation du poids de la deuxime pesee des camions decharger chaque 
   void _startTimerUpdatedPoidsP2() {
     _timerUpdating = Timer.periodic(const Duration(minutes: 12), (timer) async {
-      if (await thereAreSynchronisationOfP2()){
+      if (await thereAreSynchronisationOfP2FromAPI()){
         _updtatePoidsP2();
       }
     });
@@ -166,19 +172,6 @@ class _HomeState extends State<Home> {
   // }
 
   
-
-  //permet de verifier s'il y'a une synchronisation avant de le faire (sera utiliser lorsque le timer va arriver)
-  Future<bool> _thereAreSynchronisation() async {
-    bool agentSyncNeeded = await thereAreSynchronisationForAgent();
-    bool dechargerCoursSyncNeeded = await thereAreSynchronisationForDechargerCours();
-    bool dechargerTableSyncNeeded = await thereAreSynchronisationForDechargerTable();
-    bool tableCanneSyncNeeded = await thereAreSynchronisationForTableCanne();
-
-    // Si une quelconque synchronisation est nécessaire, `syncNeeded` devient vrai
-    return agentSyncNeeded || dechargerCoursSyncNeeded || dechargerTableSyncNeeded || tableCanneSyncNeeded;
-    
-  }
-
 
   //Methode qui annulera le timer de synchronisation actuel et le redémarrera (sera utile lors de la synchronisation manuelle dans la sidebar)
   void _resetSyncTimer() {
@@ -225,17 +218,10 @@ class _HomeState extends State<Home> {
 
   // la mise a jour du poids P2 correspond a la recuperation du poids de la deuxieme pesee des camions decharger
   Future<void> _updtatePoidsP2() async {
-    String updated = await getPoidsP2FromFPESEE(); 
+    String updated = await updatePoidsP2ForCamionsWithP2Null(); 
     if (updated == "error"){    
       _showMessageWithTime("La Mise a jour du poids P2 camions déchargés à echoué . Veuillez vérifier également votre connexion internet.",6000);
     } 
-    // else if (updated == "") {
-    //   _showMessageWithTime("La Recuperation du poids de la deuxieme pesee des camons déchargés effectuée avec succès",4000);
-
-    // }
-    // else{
-    //   _showMessageWithTime("Les Poids de la deuxieme pesee des camions dechargés ont été recuperé",4000);
-    // }
   }
 
   //faire la synchronisation des donnee( revient a les envoyer sur le serveur distant)
@@ -245,40 +231,13 @@ class _HomeState extends State<Home> {
 
     //avec cette maniere il executera toute les synchronisation qu'il y'a a faire, si un echoue on continue mais a la fin on precise que la synchronisation n'a pas ete fait cela peut etre du a un qui ne fonctionne pas ou que les serveurs sont ete
     try {
+
       if (await thereAreSynchronisationForAgent()) {
         //print('synchro pour agent');
         allSuccess &= await synchroniserAgent();
         //thereAreSynchronisation = true;
       }
 
-      if (await thereAreSynchronisationForDechargerCours()) {
-        //print('synchro pour les dechar dans la cour');
-
-        allSuccess &= await synchroniserDonneeDechargerCours();
-        //thereAreSynchronisation = true;
-
-      }
-
-      if (await thereAreSynchronisationForDechargerTable()) {
-        //print('synchro pour les dechar direct sur la table');
-        allSuccess &= await synchroniserDonneeDechargerTableDirect();
-        //thereAreSynchronisation = true;
-
-      }
-
-      if (await thereAreSynchronisationForTableCanne()) {
-        //print('object');
-        //print('synchro pour les dechar par tas sur la table');
-        allSuccess &= await synchroniserDonneeTableCanne();
-        //thereAreSynchronisation = true;
-
-      }
-
-      // if (allSuccess && thereAreSynchronisation) {
-      //   //il y'a eu au moins une synchronisation et elle s'est effectuer sans sousi
-      //  // _showMessageWithTime('Synchronisation effectuée avec succès', 2000);
-        
-      // } 
       if (!allSuccess) {
         // s'il y'a eu un souci de synchro
         _showMessageWithTime("La synchronisation a échoué. Veuillez vérifier votre connexion internet.", 6000);

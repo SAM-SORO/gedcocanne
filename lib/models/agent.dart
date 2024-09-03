@@ -1,4 +1,3 @@
-import 'package:cocages/models/ligne.dart';
 import 'package:isar/isar.dart';
 
 part 'agent.g.dart';
@@ -25,6 +24,4 @@ class Agent {
   @Index()
   bool etatModification = false; // Etat de Modification, par défaut à false
 
-  // Lignes associées à cet agent
-  final lignes = IsarLinks<Ligne>();
 }

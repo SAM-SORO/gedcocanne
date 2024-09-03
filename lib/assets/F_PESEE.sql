@@ -1,15 +1,15 @@
-USE cocages;
+USE gedcocanne;
 GO
 
 IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'F_PESEE')
 BEGIN
     CREATE TABLE F_PESEE (
-        ID INT IDENTITY(1,1) PRIMARY KEY, -- Colonne identifiant auto-incrémenté
+        ID INT IDENTITY(1,1) PRIMARY KEY, -- Colonne identifiant auto-incrï¿½mentï¿½
         VE_CODE NVARCHAR(50) NOT NULL,
         PS_POIDSP1 DECIMAL(10, 2) NOT NULL,
         PS_POIDSP2 DECIMAL(10, 2) NULL,
-        PR_CODE INT NOT NULL DEFAULT 01, -- Valeur par défaut pour PR_CODE
-        PS_POIDSTare DECIMAL(10, 2) NULL, -- peut être null
+        PR_CODE INT NOT NULL DEFAULT 01, -- Valeur par dï¿½faut pour PR_CODE
+        PS_POIDSTare DECIMAL(10, 2) NULL, -- peut ï¿½tre null
         DATEHEUREP1 DATETIME NOT NULL,
         TECH_COUPE NVARCHAR(50) NOT NULL,
         PS_CODE NVARCHAR(50) NOT NULL  -- Ajout du champ PS_CODE
@@ -17,7 +17,7 @@ BEGIN
 END
 GO
 
--- Insertion des données
+-- Insertion des donnï¿½es
 INSERT INTO F_PESEE (VE_CODE, PS_POIDSP1, PS_POIDSP2, PS_POIDSTare, DATEHEUREP1, TECH_COUPE, PS_CODE)
 VALUES 
     ('xx1', 10.00, 5.00, 10.00, CONVERT(DATETIME, '2025-10-20 10:30:00', 120), 'RV', 'P1'),

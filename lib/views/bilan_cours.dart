@@ -1,5 +1,5 @@
-import 'package:cocages/assets/imagesReferences.dart';
-import 'package:cocages/services/api_service.dart';
+import 'package:gedcocanne/assets/imagesReferences.dart';
+import 'package:gedcocanne/services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';

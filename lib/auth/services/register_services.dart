@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:cocages/models/agent.dart';
-import 'package:cocages/models/current_user.dart';
-import 'package:cocages/services/database.dart';
+import 'package:gedcocanne/models/agent.dart';
+import 'package:gedcocanne/models/current_user.dart';
+import 'package:gedcocanne/services/database.dart';
 import 'package:crypto/crypto.dart';
 import 'package:isar/isar.dart';
 

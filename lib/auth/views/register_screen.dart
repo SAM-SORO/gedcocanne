@@ -1,5 +1,5 @@
-import 'package:cocages/assets/imagesReferences.dart';
-import 'package:cocages/auth/services/register_services.dart';
+import 'package:gedcocanne/assets/imagesReferences.dart';
+import 'package:gedcocanne/auth/services/register_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';

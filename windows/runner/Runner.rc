@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "cocages" "\0"
+            VALUE "FileDescription", "gedcocanne" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "cocages" "\0"
+            VALUE "InternalName", "gedcocanne" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2024 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "cocages.exe" "\0"
-            VALUE "ProductName", "cocages" "\0"
+            VALUE "OriginalFilename", "gedcocanne.exe" "\0"
+            VALUE "ProductName", "gedcocanne" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

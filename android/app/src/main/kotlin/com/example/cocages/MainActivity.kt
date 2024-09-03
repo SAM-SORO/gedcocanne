@@ -1,4 +1,4 @@
-package com.example.cocages
+package com.example.gedcocanne
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,7 +1,7 @@
-import 'package:cocages/assets/imagesReferences.dart';
-import 'package:cocages/auth/services/login_services.dart';
-import 'package:cocages/services/api_service.dart';
-import 'package:cocages/views/home.dart';
+import 'package:gedcocanne/assets/imagesReferences.dart';
+import 'package:gedcocanne/auth/services/login_services.dart';
+import 'package:gedcocanne/services/api_service.dart';
+import 'package:gedcocanne/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
@@ -314,7 +314,7 @@ class _LoginViewState extends State<LoginScreen> {
           // Redirige vers la page principale ou autre après connexion réussie
           Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Home()),
+            MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool ) {  }, isDarkMode: false,)),
           );
 
         }else if (isAuthenticated == "false"){
@@ -328,7 +328,7 @@ class _LoginViewState extends State<LoginScreen> {
             // Redirige vers la page principale après connexion réussie
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => Home()),
+              MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool ) {  }, isDarkMode: false,)),
             );
           }else if (isAuthenticatedWithApi=="false" ){
             setState(() {

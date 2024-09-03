@@ -18,7 +18,7 @@
 
     <application
         android:enableOnBackInvokedCallback="true"
-        android:label="cocages"
+        android:label="gedcocanne"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

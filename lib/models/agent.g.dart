@@ -115,14 +115,7 @@ const AgentSchema = CollectionSchema(
       ],
     )
   },
-  links: {
-    r'lignes': LinkSchema(
-      id: 676598250171598203,
-      name: r'lignes',
-      target: r'Ligne',
-      single: false,
-    )
-  },
+  links: {},
   embeddedSchemas: {},
   getId: _agentGetId,
   getLinks: _agentGetLinks,
@@ -198,12 +191,11 @@ Id _agentGetId(Agent object) {
 }
 
 List<IsarLinkBase<dynamic>> _agentGetLinks(Agent object) {
-  return [object.lignes];
+  return [];
 }
 
 void _agentAttach(IsarCollection<dynamic> col, Id id, Agent object) {
   object.id = id;
-  object.lignes.attach(col, col.isar.collection<Ligne>(), r'lignes', id);
 }
 
 extension AgentQueryWhereSort on QueryBuilder<Agent, Agent, QWhere> {
@@ -984,63 +976,7 @@ extension AgentQueryFilter on QueryBuilder<Agent, Agent, QFilterCondition> {
 
 extension AgentQueryObject on QueryBuilder<Agent, Agent, QFilterCondition> {}
 
-extension AgentQueryLinks on QueryBuilder<Agent, Agent, QFilterCondition> {
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignes(
-      FilterQuery<Ligne> q) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'lignes');
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesLengthEqualTo(
-      int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'lignes', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'lignes', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'lignes', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesLengthLessThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'lignes', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesLengthGreaterThan(
-    int length, {
-    bool include = false,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'lignes', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Agent, Agent, QAfterFilterCondition> lignesLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-          r'lignes', lower, includeLower, upper, includeUpper);
-    });
-  }
-}
+extension AgentQueryLinks on QueryBuilder<Agent, Agent, QFilterCondition> {}
 
 extension AgentQuerySortBy on QueryBuilder<Agent, Agent, QSortBy> {
   QueryBuilder<Agent, Agent, QAfterSortBy> sortByEtatModification() {
