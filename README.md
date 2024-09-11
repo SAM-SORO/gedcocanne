@@ -1,4 +1,4 @@
-# gedcocanne
+# Gedcocanne
 
 A new Flutter project.
 
@@ -96,3 +96,30 @@ input : Convertit CRLF en LF lors de l'ajout, mais laisse les LF intacts.
 true : Convertit LF en CRLF lors de l'extraction et inversement lors de l'ajout.
 LF (Line Feed) : Utilisé principalement sur les systèmes UNIX/Linux et macOS.
 CRLF (Carriage Return + Line Feed) : Utilisé principalement sur les systèmes Windows.
+
+
+### Heberrgement IIS
+en plus des configuration donnner dans le doc de configuration
+il faut se rendrre dans le repeertoire 
+C:\Windows\System32\inetsrv\config
+puis dans le fichier applicationHost.config
+rechercher
+<section name="handlers" overrideModeDefault="Deny" />
+Changez la valeur de overrideModeDefault="Deny" à Allow pour débloquer cette section.
+
+Faites la même chose pour d'autres sections comme rewrite ou requestFiltering si nécessaire.
+
+
+l'erreur qui conduit à cette solution precedente necessite de faire ceci 
+
+Merci pour l'image. L'erreur indiquée dans l'éditeur de configuration précise que la section system.webServer ne peut pas être utilisée à cet emplacement dans le fichier web.config, car elle est verrouillée à un niveau parent.
+
+Solution :
+Déverrouillage de la section dans IIS :
+
+Ouvrez le Gestionnaire des services Internet (IIS).
+Sélectionnez votre site web ou application dans l'arborescence à gauche.
+Dans le volet à droite, sous Gestion, cliquez sur Paramètres de fonctionnalités (ou Configuration Editor en anglais).
+Dans la liste déroulante, sélectionnez system.webServer/handlers.
+Dans la partie droite, vous verrez s'il y a une restriction sur cette section. Si elle est verrouillée, déverrouillez-la.
+Après avoir effectué cette opération, redémarrez IIS.

@@ -1,4 +1,4 @@
-import 'package:gedcocanne/assets/imagesReferences.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
 import 'package:flutter/material.dart';
 
 class AppbarView extends StatelessWidget implements PreferredSizeWidget {
@@ -10,11 +10,11 @@ class AppbarView extends StatelessWidget implements PreferredSizeWidget {
   final ValueChanged<bool> onSwitchChanged;
 
   const AppbarView({
-    Key? key,
+    super.key,
     required this.currentIndex, 
     required this.isSwitched,
     required this.onSwitchChanged,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

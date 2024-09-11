@@ -1,4 +1,4 @@
-package com.example.gedcocanne
+package com.example.Gedcocanne
 
 import io.flutter.embedding.android.FlutterActivity
 

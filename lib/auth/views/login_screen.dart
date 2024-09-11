@@ -1,7 +1,7 @@
-import 'package:gedcocanne/assets/imagesReferences.dart';
-import 'package:gedcocanne/auth/services/login_services.dart';
-import 'package:gedcocanne/services/api_service.dart';
-import 'package:gedcocanne/views/home.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
+import 'package:Gedcocanne/auth/services/login_services.dart';
+import 'package:Gedcocanne/services/api/auth_services.dart';
+import 'package:Gedcocanne/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
@@ -11,10 +11,10 @@ class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  _LoginViewState createState() => _LoginViewState();
+  LoginViewState createState() => LoginViewState();
 }
 
-class _LoginViewState extends State<LoginScreen> {
+class LoginViewState extends State<LoginScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _loginController = TextEditingController();
   // Booléen pour l'état de chargement
@@ -25,7 +25,7 @@ class _LoginViewState extends State<LoginScreen> {
   void initState() {
     super.initState();
   }
-
+  
 
   @override
   void dispose() {
@@ -59,68 +59,72 @@ class _LoginViewState extends State<LoginScreen> {
                       ),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: Transform.rotate(
-                              angle: 0.1, // Ajuster l'angle en radians
-                              child: Container(
-                                decoration: const BoxDecoration(
-                                  image: DecorationImage(
-                                    image: AssetImage(Imagesreferences.sucreRoux),
+                  Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 200),
+                    
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              height: 200,
+                              width: 200,
+                              child: Transform.rotate(
+                                angle: 0.1, // Ajuster l'angle en radians
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage(Imagesreferences.sucreRoux),
+                                    ),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: Container(
-                              decoration: const BoxDecoration(
-                                image: DecorationImage(
-                                  image: AssetImage(Imagesreferences.princesseTatie),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: SizedBox(
-                            height: 200,
-                            width: 200,
-                            child: Transform.rotate(
-                              angle: -0.1, // Ajuster l'angle en radians
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(4.0),
+                            child: SizedBox(
+                              height: 200,
+                              width: 200,
                               child: Container(
                                 decoration: const BoxDecoration(
                                   image: DecorationImage(
-                                    image: AssetImage(Imagesreferences.sucreBlanc),
+                                    image: AssetImage(Imagesreferences.princesseTatie),
                                   ),
                                 ),
                               ),
                             ),
                           ),
                         ),
-                      ),
-                    ],
+                        Expanded(
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: SizedBox(
+                              height: 200,
+                              width: 200,
+                              child: Transform.rotate(
+                                angle: -0.1, // Ajuster l'angle en radians
+                                child: Container(
+                                  decoration: const BoxDecoration(
+                                    image: DecorationImage(
+                                      image: AssetImage(Imagesreferences.sucreBlanc),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   Container(
                     width: double.infinity,
-                    constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height - 80 - 200 - 70,),
+                    constraints: BoxConstraints(minHeight: MediaQuery.of(context).size.height - 80 - 200 - 70, maxWidth: 700,),
                     decoration: const BoxDecoration(boxShadow: [BoxShadow(color: Color.fromARGB(255, 252, 250, 250),blurRadius: 10,spreadRadius: 8, offset: Offset(5, 5),),],),
                     child: Form(
                       key: _formKey,
@@ -275,7 +279,9 @@ class _LoginViewState extends State<LoginScreen> {
                                 style: GoogleFonts.poppins(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                               ),
                             ),
-                          )
+                          ),
+
+                          const SizedBox(height: 40),
                           
                         ],
                       ),
@@ -302,73 +308,101 @@ class _LoginViewState extends State<LoginScreen> {
       final matricule = _loginController.text.trim();
       final password = _passwordController.text.trim();
 
-    
       // Essaye de se connecter avec les informations d'identification en local
       try {
-        final isAuthenticated = await authenticateUser(matricule, password);
+
+        final isAuthenticated = await authenticateUserInLocal(matricule, password);
         if (isAuthenticated == "true") {
           setState(() {
             _isLoading = false;
           });
           //_showMessageWithTime('Connexion réussie !', 4000);
           // Redirige vers la page principale ou autre après connexion réussie
-          Navigator.pushReplacement(
+          if(mounted){
+            Navigator.pushReplacement(
             context,
-            MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool ) {  }, isDarkMode: false,)),
+            MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool isDarkMode) {}, isDarkMode: false,)),
           );
+          }
+          
 
         }else if (isAuthenticated == "false"){
+
           String isAuthenticatedWithApi = await authenticateUserFromAPI(matricule, password);
-          //print("la");
+          
           if (isAuthenticatedWithApi=="true" ){
             setState(() {
               _isLoading = false;
             });
             //_showMessageWithTime('Connexion réussie par api !', 4000);
             // Redirige vers la page principale après connexion réussie
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool ) {  }, isDarkMode: false,)),
-            );
+            if(mounted){
+              Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(builder: (context) => Home(toggleTheme: (bool isDarkMode) { }, isDarkMode: false,)),
+              );
+            }
+            
           }else if (isAuthenticatedWithApi=="false" ){
             setState(() {
               _isLoading = false;
             });
             //_showMessageWithTime('Matricule ou mot de passe incorrect', 4000);
-            toastification.show(
-              context: context,
-              alignment: Alignment.topCenter,
-              style: ToastificationStyle.flatColored,
-              type: ToastificationType.error,
-              title: Text('Matricule ou mot de passe incorrect!', style: GoogleFonts.poppins(fontSize: 18)),
-              autoCloseDuration: const Duration(seconds: 4),
-              margin: EdgeInsets.all(30),
-            );
+            _showErrorMessage('Matricule ou mot de passe incorrect!');
           }else{
             setState(() {
               _isLoading = false;
             });
-            _showMessageWithTime('La connexion au serveur à echoué verifier votre connexion internet',4000);
+            _showErrorMessage('La connexion au serveur à echoué, connectez vous au reseau');
+
+            //_showMessageWithTime('',4000);
           }
         }else{
-          _showMessageWithTime('L\'authentification à échoué',4000);
+          //_showMessageWithTime('L\'authentification à échoué',4000);
+          _showErrorMessage('La connexion au serveur à echoué, connectez vous au reseau');
+
         }
 
       } catch (e) {
         // Gère les erreurs potentielles, par exemple, en cas de problème avec la base de données
         //print('Erreur de connexion : $e');
-        _showMessageWithTime('La connexion au serveur à echoué verifier votre connexion internet',4000);
+        //_showMessageWithTime('La connexion au serveur à echoué verifier votre connexion internet',4000);
+        _showErrorMessage('La connexion au serveur à echoué verifier votre connexion internet');
       }
     }
   }
 
+  // void _showSuccessMessage(String message){
+  //   toastification.show(
+  //     context: context,
+  //     alignment: Alignment.topCenter,
+  //     style: ToastificationStyle.flatColored,
+  //     type: ToastificationType.success,
+  //     title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+  //     autoCloseDuration: const Duration(seconds: 4),
+  //     margin: const EdgeInsets.all(30),
+  //   );
+  // }
 
-  // Fonction pour afficher les messages en precisant le temps que cela doit faire
-  void _showMessageWithTime(String message, int time) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message, style: GoogleFonts.poppins(fontSize: 19),), duration: Duration(milliseconds: time),),
+
+  void _showErrorMessage(String message){
+    toastification.show(
+      context: context,
+      alignment: Alignment.topCenter,
+      style: ToastificationStyle.flatColored,
+      type: ToastificationType.error,
+      title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+      autoCloseDuration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(30),
     );
   }
+
+  // Fonction pour afficher les messages en precisant le temps que cela doit faire
+  // void _showMessageWithTime(String message, int time) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text(message, style: GoogleFonts.poppins(fontSize: 19),), duration: Duration(milliseconds: time),),
+  //   );
+  // }
 
 }
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
-import 'package:gedcocanne/models/agent.dart';
-import 'package:gedcocanne/models/current_user.dart';
-import 'package:gedcocanne/services/database.dart';
+import 'package:Gedcocanne/models/agent.dart';
+import 'package:Gedcocanne/models/current_user.dart';
+import 'package:Gedcocanne/services/isar/database.dart';
 import 'package:crypto/crypto.dart';
 import 'package:isar/isar.dart';
 
@@ -59,6 +59,7 @@ Future<bool> updatePassword(String matricule, String newPassword) async {
     await isar.writeTxn(() async {
       // Hacher le nouveau mot de passe avant de le stocker
       agent.password = hashedPassword;
+      agent.etatModification = true;
       await isar.agents.put(agent);
     });
     return true;

@@ -1,5 +1,5 @@
-import 'package:gedcocanne/assets/imagesReferences.dart';
-import 'package:gedcocanne/auth/services/register_services.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
+import 'package:Gedcocanne/auth/services/register_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
@@ -8,10 +8,10 @@ class RegisterAgentScreen extends StatefulWidget {
   const RegisterAgentScreen({super.key});
 
   @override
-  _RegisterAgentViewState createState() => _RegisterAgentViewState();
+  RegisterAgentViewState createState() => RegisterAgentViewState();
 }
 
-class _RegisterAgentViewState extends State<RegisterAgentScreen> {
+class RegisterAgentViewState extends State<RegisterAgentScreen> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _loginController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
@@ -32,57 +32,6 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
     super.dispose();
   }
 
-  void _resetFields() {
-    _loginController.clear();
-    _passwordController.clear();
-    setState(() {
-      _selectedRole = 'user';
-    });
-  }
-
-
-  Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
-      // Récupère les informations d'enregistrement
-      final matricule = _loginController.text.trim();
-      final password = _passwordController.text;
-
-      // Essaye de s'enregistrer avec les informations
-      try {
-        // enregistrer
-        final isRegistered = await registerAgent(matricule, password, _selectedRole!);
-
-        if (isRegistered) {
-          toastification.show(
-            context: context,
-            alignment: Alignment.topRight,
-            style: ToastificationStyle.flatColored,
-            type: ToastificationType.success,
-            title: Text('Enregistrement effectué avec succès!', style: GoogleFonts.poppins(fontSize: 18)),
-            autoCloseDuration: const Duration(seconds: 4),
-            margin: EdgeInsets.all(30),
-          );
-          _resetFields(); // Réinitialiser les champs après un enregistrement réussi
-        } else {
-          toastification.show(
-            context: context,
-            alignment: Alignment.topRight,
-            style: ToastificationStyle.flatColored,
-            type: ToastificationType.error,
-            title: Text('Erreur lors de l\'enregistrement!', style: GoogleFonts.poppins(fontSize: 18)),
-            autoCloseDuration: const Duration(seconds: 4),
-            margin: EdgeInsets.all(30),
-          );
-        }
-      } catch (e) {
-        // Gère les erreurs potentielles
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur d\'enregistrement : $e')),
-        );
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -100,9 +49,9 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
                   children: [
                     // Icône de retour
                     Container(
-                      margin: EdgeInsets.only(bottom: 20, left: 15),
+                      margin: const EdgeInsets.only(bottom: 20, left: 15),
                       decoration: BoxDecoration(
-                        border: Border.all(color: Color.fromARGB(96, 209, 189, 189)),
+                        border: Border.all(color: const Color.fromARGB(96, 209, 189, 189)),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: IconButton(
@@ -192,9 +141,9 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
                   ],
                 ),
                 Container(
-                  width: double.infinity,
                   constraints: BoxConstraints(
                     minHeight: MediaQuery.of(context).size.height - 80 - 200 - 75,
+                    maxWidth: 700, 
                   ),
                   decoration: const BoxDecoration(
                     boxShadow: [BoxShadow(color: Color.fromARGB(255, 252, 250, 250), blurRadius: 10, spreadRadius: 8, offset: Offset(5, 5))],
@@ -215,7 +164,7 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
                             ),
                             const SizedBox(width: 20),
                             Padding(
-                              padding: const EdgeInsets.all(8.0),
+                              padding: const EdgeInsets.all(10.0),
                               child: Text(
                                 "ENREGISTRER UN AGENT",
                                 style: GoogleFonts.poppins(fontSize: 30, fontWeight: FontWeight.w700),
@@ -354,14 +303,14 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
                             },
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 20),
                         Container(
                           height: 60,
                           width: double.infinity,
                           margin: const EdgeInsets.all(20),
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor:  Color(0xFF9B5229),
+                              backgroundColor: const Color(0xFF9B5229),
                               textStyle: GoogleFonts.poppins(fontSize: 20,),
                               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                               side: const BorderSide(
@@ -375,7 +324,7 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
                             child: Text('ENREGISTRER', style: GoogleFonts.poppins(color: Colors.white ,fontSize: 24, fontWeight: FontWeight.bold)),
                           ),
                         ),
-                        SizedBox(height: 20),
+                        const SizedBox(height: 40),
 
                       ],
                     ),
@@ -388,13 +337,66 @@ class _RegisterAgentViewState extends State<RegisterAgentScreen> {
       ),
     );
   }
-    // Fonction pour afficher les messages d'erreur
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message),
-      duration: const Duration(seconds: 10)), // Durée de 10 secondes
+
+
+  
+  void _resetFields() {
+    _loginController.clear();
+    _passwordController.clear();
+    setState(() {
+      _selectedRole = 'user';
+    });
+  }
+
+
+  Future<void> _submit() async {
+    if (_formKey.currentState!.validate()) {
+      // Récupère les informations d'enregistrement
+      final matricule = _loginController.text.trim();
+      final password = _passwordController.text;
+
+      // Essaye de s'enregistrer avec les informations
+      try {
+        // enregistrer
+        final isRegistered = await registerAgent(matricule, password, _selectedRole!);
+
+        if (isRegistered) {
+          _showSuccessMessage('Enregistrement effectué avec succès!');
+          _resetFields(); // Réinitialiser les champs après un enregistrement réussi
+        } else {
+          _showErrorMessage('Erreur lors de l\'enregistrement!');
+        }
+      } catch (e) {
+        _showErrorMessage('Erreur d\'enregistrement : $e');
+      }
+    }
+  }
+
+
+  // Fonction pour afficher les messages d'erreur
+  void _showSuccessMessage(String message){
+    toastification.show(
+      context: context,
+      alignment: Alignment.topRight,
+      style: ToastificationStyle.flatColored,
+      type: ToastificationType.success,
+      title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+      autoCloseDuration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(30),
     );
-    
+  }
+
+
+  void _showErrorMessage(String message){
+    toastification.show(
+      context: context,
+      alignment: Alignment.topRight,
+      style: ToastificationStyle.flatColored,
+      type: ToastificationType.error,
+      title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+      autoCloseDuration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(30),
+    );
   }
 
 }

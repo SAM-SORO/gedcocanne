@@ -1,0 +1,248 @@
+// Pour que l'accès aux routes définies dans decharger_cours.js fonctionne correctement, il est important de comprendre comment les routes sont organisées et comment elles sont exposées via le fichier server.js. Je vais te montrer comment les fichiers de routes peuvent être organisés et comment ils sont importés dans server.js.
+
+// Exemple de Fichiers de Route
+// decharger_cours.js
+// Supposons que decharger_cours.js contient des routes spécifiques pour les camions déchargés dans les cours :
+
+
+const express = require('express');
+const router = express.Router();
+
+// Exemple de route pour récupérer les camions déchargés dans les cours
+router.get('/camionsDechargerCours', (req, res) => {
+  // Logique pour récupérer les camions déchargés dans les cours des 15 derniers jours
+  const camions = [
+    { VE_CODE: 'xx1', PS_POIDSP1: '10', DATEHEURE: '10/20/2025', TECH_COUPE: 'RV' },
+    // autres camions...
+  ];
+  res.json(camions);
+});
+
+// Autres routes peuvent être ajoutées ici
+
+module.exports = router;
+
+
+// decharger_table.js
+// Supposons également que decharger_table.js contient des routes spécifiques pour les camions déchargés dans les tables :
+
+
+const express = require('express');
+const router = express.Router();
+
+// Exemple de route pour récupérer les camions déchargés dans les tables
+router.get('/camionsDechargerTable', (req, res) => {
+  // Logique pour récupérer les camions déchargés dans les tables
+  const camions = [
+    { VE_CODE: 'xx1', PS_POIDSP1: '10', DATEHEURE: '10/20/2025', TECH_COUPE: 'RV' },
+    // autres camions...
+  ];
+  res.json(camions);
+});
+
+// Autres routes peuvent être ajoutées ici
+
+module.exports = router;
+
+
+// server.js
+// Le fichier server.js importe ces fichiers de routes et les monte sur des préfixes spécifiques :
+
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+
+// Importer les routes
+const dechargerTableRoutes = require('./decharger_table');
+const dechargerCoursRoutes = require('./decharger_cours');
+
+// Initialiser l'application Express
+const app = express();
+const port = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors()); // Pour gérer les requêtes CORS
+app.use(bodyParser.json()); // Pour parser les requêtes JSON
+
+// Routes
+app.use('/api/dechargerTable', dechargerTableRoutes);
+app.use('/api/dechargerCours', dechargerCoursRoutes);
+
+// Démarrer le serveur
+app.listen(port, () => {
+    console.log(`Serveur en cours d'exécution sur le port ${port}`);
+});
+
+// Ajustement du Code Flutter
+// Avec les préfixes de route définis dans server.js, l'URL pour accéder aux camions déchargés dans les cours sera :
+
+
+// http://10.0.2.2:3000/api/dechargerCours/camionsDechargerCours
+// Ainsi, la fonction Flutter pour récupérer les camions déchargés dans les cours devrait être :
+
+Future<List<Map<String, dynamic>>> getCamionDechargerCoursFromAPI() async {
+  try {
+    final response = await http
+        .get(Uri.parse('http://10.0.2.2:3000/api/dechargerCours/camionsDechargerCours'))
+        .timeout(const Duration(seconds: 10)); // Timeout après 10 secondes
+
+    if (response.statusCode == 200) {
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((camion) => camion as Map<String, dynamic>).toList();
+    } else {
+      throw Exception('Failed to load camions déchargés (Cours): ${response.statusCode} ${response.reasonPhrase}');
+    }
+  } catch (e) {
+    logger.e('Error: $e');
+    throw Exception('Failed to load data: $e');
+  }
+}
+// Avec ces informations, tu devrais être en mesure de vérifier si les routes sont correctement configurées et accessibles depuis ton client Flutter. Assure-toi que les chemins d'URL dans Flutter correspondent bien aux routes définies dans ton serveur Express.
+
+
+
+
+
+/// mot de passe admin par defaut est admin
+
+
+
+///////ENREGSTRER UN DECHARGEMENT DANS LA COURS
+
+// Route pour enregistrer un camion déchargé dans la cour
+router.post('/enregistrerDechargementCours', async (req, res) => {
+  try {
+    const {
+      veCode,
+      poidsP1,
+      poidsTare,
+      techCoupe,
+      parcelle,
+      dateHeureP1,
+      ligneLibele,
+      matriculeAgent,
+      etatBroyage,
+      ligneId // Ajout de l'identifiant de la ligne
+    } = req.body;
+
+    if (!veCode || !poidsP1 || !poidsTare || !techCoupe || !parcelle || !dateHeureP1 || !ligneLibele || !matriculeAgent || etatBroyage === undefined || !ligneId) {
+      return res.status(400).send({ success: false, message: 'Champs requis manquants.' });
+    }
+
+    const poidsNet = poidsP1 - poidsTare;
+
+    const pool = await poolPromise;
+
+    const query = `
+      INSERT INTO DECHARGERCOURS (veCode, poidsP1, poidsTare, poidsP2, poidsNet, dateHeureP1, dateHeureDecharg, dateHeureP2, parcelle, techCoupe, agentMatricule, etatBroyage, ligneLibele, ligneId)
+      VALUES (@veCode, @poidsP1, @poidsTare, NULL, @poidsNet, @dateHeureP1, GETDATE(), NULL, @parcelle, @techCoupe, @agentMatricule, @etatBroyage, @ligneLibele);
+    `;
+
+    await pool.request()
+      .input('veCode', sql.NVarChar, veCode)
+      .input('poidsP1', sql.Decimal(10, 2), poidsP1)
+      .input('poidsTare', sql.Decimal(10, 2), poidsTare)
+      .input('poidsNet', sql.Decimal(10, 2), poidsNet)
+      .input('dateHeureP1', sql.DateTime, dateHeureP1)
+      .input('parcelle', sql.NVarChar, parcelle)
+      .input('techCoupe', sql.NVarChar, techCoupe)
+      .input('agentMatricule', sql.NVarChar, matriculeAgent)
+      .input('etatBroyage', sql.Bit, etatBroyage)
+      .input('ligneLibele', sql.NVarChar, ligneLibele)
+      .query(query);
+
+    // Mettre à jour le tonnage de la ligne
+    await updateLigneTonnage(ligneId);
+
+    res.status(201).send({ success: true, message: 'Camion enregistré dans la cour.' });
+    
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement:', error);
+    res.status(500).send({ success: false, message: `Erreur: ${error.message}` });
+  }
+});
+
+//Fonction pour Mettre à Jour le Tonnage de la Ligne
+async function updateLigneTonnage(ligneId) {
+  try {
+    const pool = await poolPromise;
+
+    // Calculer le tonnage total de la ligne
+    const tonnageQuery = `
+      SELECT SUM(poidsNet) AS totalTonnage
+      FROM DECHARGERCOURS
+      WHERE ligneId = @ligneId AND etatBroyage = 0
+    `;
+    
+    const result = await pool.request()
+      .input('ligneId', sql.Int, ligneId)
+      .query(tonnageQuery);
+
+    const tonnageLigne = result.recordset[0].totalTonnage || 0;
+
+    // Mettre à jour le tonnage de la ligne
+    const updateQuery = `
+      UPDATE LIGNE
+      SET tonnageLigne = @tonnageLigne
+      WHERE id = @ligneId
+    `;
+
+    await pool.request()
+      .input('tonnageLigne', sql.Decimal(10, 2), tonnageLigne)
+      .input('ligneId', sql.Int, ligneId)
+      .query(updateQuery);
+
+    // Répartition du tonnage entre les tas
+    await repartitionTonnageTas(ligneId);
+
+  } catch (error) {
+    console.error('Erreur lors de la mise à jour du tonnage de la ligne:', error);
+  }
+}
+
+//Répartir le Tonnage entre les Tas
+async function repartitionTonnageTas(ligneId) {
+  try {
+    const pool = await poolPromise;
+
+    // Obtenir le nombre de tas pour la ligne
+    const tasQuery = `
+      SELECT nbreTas
+      FROM LIGNE
+      WHERE id = @ligneId
+    `;
+    
+    const tasResult = await pool.request()
+      .input('ligneId', sql.Int, ligneId)
+      .query(tasQuery);
+
+    const nbreTas = tasResult.recordset[0].nbreTas || 5;
+
+    // Calculer le poids par tas
+    const poidsParTas = await pool.request()
+      .input('ligneId', sql.Int, ligneId)
+      .query(`
+        SELECT tonnageLigne / @nbreTas AS poidsParTas
+        FROM LIGNE
+        WHERE id = @ligneId
+      `);
+
+    const poidsTas = poidsParTas.recordset[0].poidsParTas || 0;
+
+    // Répartir le poids entre les tas
+    const updateTasQuery = `
+      UPDATE TAS
+      SET poids = @poidsTas
+      WHERE ligneId = @ligneId
+    `;
+    
+    await pool.request()
+      .input('poidsTas', sql.Decimal(10, 2), poidsTas)
+      .input('ligneId', sql.Int, ligneId)
+      .query(updateTasQuery);
+
+  } catch (error) {
+    console.error('Erreur lors de la répartition du tonnage entre les tas:', error);
+  }
+}
+

@@ -1,50 +1,64 @@
-import 'package:gedcocanne/assets/imagesReferences.dart';
-import 'package:gedcocanne/services/api_service.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
+import 'package:Gedcocanne/services/api/bilan_services.dart';
+import 'package:Gedcocanne/services/api/gespont_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:toastification/toastification.dart';
 
 class BilanCourScreen extends StatefulWidget {
-  const BilanCourScreen({super.key});
+  final List<Map<String, String>> camionsAttente;
+
+  const BilanCourScreen({super.key, required this.camionsAttente});
 
   @override
   State<BilanCourScreen> createState() => _BilancoursState();
 }
 
 class _BilancoursState extends State<BilanCourScreen> {
-  late TextEditingController startHourController ;
-  late TextEditingController endHourController ;
-  // TextEditingController endHourController = TextEditingController(text: '05');
-  // TextEditingController endHourController = TextEditingController(text: '05');
-  
-  
-  double? stockEntree;
-  double? stockActuel;
-  double? stockBroyer;
+  late TextEditingController heureDebutController;
+  late TextEditingController heureFinController;
+
+  double? qteCanneBroye;
+  double? qteCanneEntree;
+  double? qteCanneRestantDansCours;
+  double? qteCanneEnAttenteDeBroyage;
+
+  bool _chargementEnCours = false; // Indicateur de chargement
 
   @override
   void initState() {
     super.initState();
-     // Obtenir l a date et l'heure actuelle
-    DateTime now = DateTime.now();
-    
-    // Convertir l'heure actuelle en chaîne de caractères (format 24 heures)
-    String currentHour = now.hour.toString().padLeft(2, '0');
-    //padLeft(2, '0') : Assure que l'heure est toujours au format "hh" (par exemple, "06" au lieu de "6").
+    _initialiserHeures();
 
-    // Définir l'heure suivante
-    String nextHour = ((now.hour + 1) % 24).toString().padLeft(2, '0');
-    //(now.hour + 1) % 24 : Calcule l'heure suivante en tenant compte du fait que l'heure est sur un cycle de 24 heures (par exemple, si l'heure actuelle est 23, l'heure suivante sera 00).
+    // Listener pour recalculer les tonnages lorsque les heures changent
+    heureDebutController.addListener(_calculerTonnage);
+    heureFinController.addListener(_calculerTonnage);
+  }
 
-    // Initialiser les contrôleurs avec les valeurs par défaut
-    startHourController = TextEditingController(text: currentHour);
-    endHourController = TextEditingController(text: nextHour);
+  void _initialiserHeures() {
+    DateTime maintenant = DateTime.now();
+    heureDebutController = TextEditingController(text: _obtenirHeurePrecedente(maintenant));
+    heureFinController = TextEditingController(text: _obtenirHeureActuelle(maintenant));
+    _calculerTonnage();
+  }
 
-    _calculateTonnage();
+  String _obtenirHeurePrecedente(DateTime maintenant) {
+    int heureActuelle = maintenant.hour;
+    int heurePrecedente = heureActuelle - 1;
 
-    // Ajouter des listeners pour recalculer le tonnage à chaque modification des heures
-    startHourController.addListener(_calculateTonnage);
-    endHourController.addListener(_calculateTonnage);
+    // Si l'heure est 00, alors il faut passer à 23
+    if (heurePrecedente < 0) {
+      heurePrecedente = 23;
+    }
+
+    return heurePrecedente.toString().padLeft(2, '0');
+  }
+
+
+  String _obtenirHeureActuelle(DateTime maintenant) {
+    String heureActuelle = maintenant.hour.toString().padLeft(2, '0');
+    return heureActuelle;
   }
 
   @override
@@ -56,20 +70,15 @@ class _BilancoursState extends State<BilanCourScreen> {
         elevation: 0.0,
         title: Image.asset(
           Imagesreferences.bilan,
-          height: 100, // Ajustez la hauteur souhaitée
-          width: 250,  // Ajustez la largeur souhaitée
-          fit: BoxFit.contain, // Ajuste l'image pour s'adapter
+          height: 100, 
+          width: 250,  
+          fit: BoxFit.contain,
         ),
-        // centerTitle: true,
       ),
       body: RefreshIndicator(
         onRefresh: () async {
-          // Remettre les heures par défaut et recalculer le tonnage
-          setState(() {
-            startHourController.text = '05';
-            endHourController.text = '22';
-          });
-          await _calculateTonnage();
+          _rafraichirHeures(); // Utilise les heures actuelles au rafraîchissement
+          await _calculerTonnage();
         },
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(40.0),
@@ -94,7 +103,7 @@ class _BilancoursState extends State<BilanCourScreen> {
                   children: [
                     Expanded(
                       child: TextField(
-                        controller: startHourController,
+                        controller: heureDebutController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -109,7 +118,7 @@ class _BilancoursState extends State<BilanCourScreen> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: TextField(
-                        controller: endHourController,
+                        controller: heureFinController,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
@@ -124,11 +133,20 @@ class _BilancoursState extends State<BilanCourScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                buildTonnageInfo('Tonnage de la canne Entree', '${stockEntree?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
-                const SizedBox(height: 16),
-                buildTonnageInfo('Tonnage de la canne actuelle dans la cour', '${stockActuel?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
-                const SizedBox(height: 16),
-                buildTonnageInfo('Tonnage broyé', '${stockBroyer?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                // Indicateur de chargement
+                _chargementEnCours 
+                  ? const Center(child: CircularProgressIndicator()) 
+                  : Column(
+                      children: [
+                        construireInfoTonnage('Quantite de canne en attente', '${qteCanneEnAttenteDeBroyage?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        const SizedBox(height: 16),
+                        construireInfoTonnage('Quantite de canne decharger', '${qteCanneEntree?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        const SizedBox(height: 16),
+                        construireInfoTonnage('Quantite de canne actuelle dans la cour', '${qteCanneRestantDansCours?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        const SizedBox(height: 16),
+                        construireInfoTonnage('Quantite de canne broyé', '${qteCanneBroye?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                      ],
+                    ),
               ],
             ),
           ),
@@ -137,7 +155,7 @@ class _BilancoursState extends State<BilanCourScreen> {
     );
   }
 
-  Widget buildTonnageInfo(String title, String quantity) {
+  Widget construireInfoTonnage(String titre, String quantite) {
     return Container(
       height: 100,
       decoration: BoxDecoration(
@@ -163,17 +181,19 @@ class _BilancoursState extends State<BilanCourScreen> {
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 child: Text(
-                  title,
+                  titre,
                   style: GoogleFonts.poppins(color: Colors.white, fontSize: 16),
                 ),
               ),
             ],
           ),
           Text(
-            quantity,
+            //le tonnage
+            quantite,
             style: GoogleFonts.poppins(
               fontSize: 16,
               fontWeight: FontWeight.bold,
+              color: Colors.black,
             ),
           ),
         ],
@@ -181,34 +201,89 @@ class _BilancoursState extends State<BilanCourScreen> {
     );
   }
 
-  
-  Future<void> _calculateTonnage() async {
-    final startHour = startHourController.text;
-    final endHour = endHourController.text;
-
-    final tonnageDechargerCours = await getTonnageDechargerCoursFromAPI(startHour: startHour, endHour: endHour);
-    final tonnageBroyerTableDirect = await getTonnageBroyerDirectFromAPI(startHour: startHour, endHour: endHour);
-    final tonnageBroyerParTas = await getTonnageBroyerParTasFromAPI(startHour: startHour, endHour: endHour);
-
-    final tonnageEntree = (tonnageDechargerCours! + (tonnageBroyerTableDirect!));
-    final tonnageBroyer = (tonnageBroyerParTas! + tonnageBroyerTableDirect);
+  void _rafraichirHeures() {
+    DateTime maintenant = DateTime.now();
     setState(() {
-      stockEntree = tonnageEntree;
-      stockBroyer = tonnageBroyer;
-      stockActuel = (tonnageEntree - tonnageBroyer);
+      heureDebutController.text = _obtenirHeurePrecedente(maintenant);
+      heureFinController.text = _obtenirHeureActuelle(maintenant);
     });
   }
 
+  Future<void> _calculerTonnage() async {
+    final heureDebut = heureDebutController.text;
+    final heureFin = heureFinController.text;
+
+       // Validation des heures
+    if (!_heureEstValide(heureDebut) || !_heureEstValide(heureFin)) {
+      _showErrorMessage("Veuillez entrer des heures valides (entre 00 et 23).");
+      return;
+    }
+
+    setState(() {
+      _chargementEnCours = true; // Début du chargement
+    });
+
+    try {
+      
+      //les tas de canne broyé
+      final tonnageBroyerParTas = await getTonnageCanneBroyerParTasFromAPI(heureDebut: heureDebut, heureFin: heureFin);
+      //pour la quantite restant dans la cour
+      final tonnageRestantCours = await getTonnageCanneRestantCoursFromAPI();
+      //pour la quantite dechager directement sur la table a canne
+      final tonnageBroyerTableDirect = await getTonnageCanneBroyerDirectFromAPI(heureDebut: heureDebut, heureFin: heureFin);
+      // pour la quantite decharger daans la cours
+      final tonnageDechargeCours = await getTonnageCanneDechargerCoursFromAPI(heureDebut: heureDebut, heureFin: heureFin);
+      //pour la quantite de canne en attente de dechargement
+      final tonnageCamionAttente = await getTonnageCanneCamionAttenteFromAPI(widget.camionsAttente);
+      //pour la quantite total de canne entree dans la cour ca canne
+      final tonnageEntreeCours = await getTonnageCanneEntree(heureDebut: heureDebut, heureFin: heureFin);
+
+      // Vérifie que toutes les valeurs sont valides
+      if (tonnageBroyerParTas == null ||
+          tonnageRestantCours == null ||
+          tonnageBroyerTableDirect == null ||
+          tonnageDechargeCours == null ||
+          tonnageCamionAttente == null ||
+          tonnageEntreeCours == null) {
+        _showErrorMessage('La récupération des informations sur le tonnage à échoué.');
+        return;
+      }
 
 
+      setState(() {
+        qteCanneEntree = tonnageEntreeCours;
+        qteCanneBroye = tonnageBroyerTableDirect + tonnageBroyerParTas;
+        qteCanneEnAttenteDeBroyage = tonnageCamionAttente;
+        qteCanneRestantDansCours = tonnageRestantCours;
+      });
 
-  @override
-  void dispose() {
-    // Libérer les ressources
-    startHourController.removeListener(_calculateTonnage);
-    endHourController.removeListener(_calculateTonnage);
-    startHourController.dispose();
-    endHourController.dispose();
-    super.dispose();
+    } catch (e) {
+      _showErrorMessage('La récupération des informations sur le tonnage à échoué.');
+    } finally {
+      setState(() {
+        _chargementEnCours = false; // Fin du chargement
+      });
+    }
   }
+
+  bool _heureEstValide(String heure) {
+    final int? valeur = int.tryParse(heure);
+    return valeur != null && valeur >= 0 && valeur <= 23;
+  }
+
+  void _showErrorMessage(String message){
+    toastification.show(
+      context: context,
+      alignment: Alignment.topCenter,
+      style: ToastificationStyle.flatColored,
+      type: ToastificationType.error,
+      title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+      autoCloseDuration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(30),
+    );
+  }
+
+
+
+
 }

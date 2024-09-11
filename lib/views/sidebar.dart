@@ -1,11 +1,11 @@
-import 'package:gedcocanne/assets/imagesReferences.dart';
-import 'package:gedcocanne/auth/services/login_services.dart';
-import 'package:gedcocanne/auth/views/change_password_screen.dart';
-import 'package:gedcocanne/auth/views/login_screen.dart';
-import 'package:gedcocanne/auth/views/register_screen.dart';
-import 'package:gedcocanne/services/sync_agent_service.dart';
-import 'package:gedcocanne/views/bilan_cours.dart';
-import 'package:gedcocanne/views/home.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
+import 'package:Gedcocanne/auth/services/login_services.dart';
+import 'package:Gedcocanne/auth/views/change_password_screen.dart';
+import 'package:Gedcocanne/auth/views/login_screen.dart';
+import 'package:Gedcocanne/auth/views/register_screen.dart';
+import 'package:Gedcocanne/services/isar/sync_agent_service.dart';
+import 'package:Gedcocanne/views/bilan_cours.dart';
+import 'package:Gedcocanne/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:toastification/toastification.dart';
@@ -16,6 +16,7 @@ class Sidebar extends StatefulWidget {
   final Function cancelSyncAndUpdatingTimer;
   final Function(bool) toggleTheme; // Ajout de ce paramètre
   final bool isDarkMode;  // Ajouter cette propriété
+  final List<Map<String, String>> camionsAttente;
 
   const Sidebar({
     super.key,
@@ -24,16 +25,17 @@ class Sidebar extends StatefulWidget {
     required this.cancelSyncAndUpdatingTimer,
     required this.toggleTheme, // Ajout de ce paramètre
     required this.isDarkMode,  // Recevoir cette propriété
+    required this.camionsAttente,
 
   });
 
 
 
   @override
-  _SidebarState createState() => _SidebarState();
+  SidebarState createState() => SidebarState();
 }
 
-class _SidebarState extends State<Sidebar> {
+class SidebarState extends State<Sidebar> {
   bool isAdminUser = false; // permettra de savoir si c'est un admin ou pas afin de lui permettre d'enregistrer un agent
   bool syncNeeded = false; // Variable pour suivre s'il y'a des donnee qui necessite une synchronisation
   bool isInSync = false; //variable pour suivre si la synchonisation se fait ou pas  pour faire sortir le circular indicator 
@@ -119,17 +121,23 @@ class _SidebarState extends State<Sidebar> {
                   },
                   
                 ),
+
+                const SizedBox(height: 10),
+
                 ListTile(
                   leading: const Icon(Icons.aspect_ratio_rounded, size: 22),
                   title: Text(
-                    'Stock Cours',
+                    'Rapport Canne Broye',
                     style: GoogleFonts.poppins(color: Colors.black, fontSize: 18),
                   ),
                   onTap: () {
                     Navigator.pop(context); // Ferme le Drawer
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const BilanCourScreen()));
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => BilanCourScreen(camionsAttente: widget.camionsAttente) ));
                   },
                 ),
+
+                const SizedBox(height: 10),
+
                 ListTile(
                   leading: Icon(Icons.sync, color: syncNeeded ? const  Color(0xFFFFB300) : Colors.grey, size: 22),
                   title: Text(
@@ -143,7 +151,10 @@ class _SidebarState extends State<Sidebar> {
                   } : null,
                 ),
 
-                if (isAdminUser)
+                if (isAdminUser)...[
+
+                  const SizedBox(height: 10),
+
                   ListTile(
                     leading: const Icon(Icons.person_add, color: Color(0xFFFFB300), size: 22),
                     title: Text(
@@ -156,6 +167,10 @@ class _SidebarState extends State<Sidebar> {
                     },
                   ),
                 
+                ],
+
+                const SizedBox(height: 10),
+                  
                 ListTile(
                   leading: const Icon(Icons.person_add, color: Color(0xFFFFB300), size: 22),
                   title: Text(
@@ -167,6 +182,8 @@ class _SidebarState extends State<Sidebar> {
                     Navigator.push(context, MaterialPageRoute(builder: (context) => const ChangePasswordScreen()));
                   },
                 ),
+
+                const SizedBox(height: 20),
 
                 SwitchListTile(
                   secondary: const Icon(Icons.dark_mode),
@@ -248,11 +265,11 @@ class _SidebarState extends State<Sidebar> {
 
 
   // Fonction pour afficher les messages en precisant le temps que cela doit faire prerndre
-  void _showMessageWithTime(String message, int time) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message, style: GoogleFonts.poppins(fontSize: 19),), duration: Duration(milliseconds: time),),
-    );
-  }
+  // void _showMessageWithTime(String message, int time) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text(message, style: GoogleFonts.poppins(fontSize: 19),), duration: Duration(milliseconds: time),),
+  //   );
+  // }
 
    // Fonction pour gérer la synchronisation manuelle
   Future<void> _synchronisationManuel() async {
@@ -264,16 +281,16 @@ class _SidebarState extends State<Sidebar> {
     await widget.synchroniserManuellement();
     widget.resetSyncTimer(); // Réinitialise le timer de synchronisation automatique
 
-    toastification.show(
-      context: context,
-      alignment: Alignment.topRight,
-      style: ToastificationStyle.flatColored,
-      type: ToastificationType.success,
-      title: Text('Synchronisation effectuée avec succès', style: GoogleFonts.poppins(fontSize: 18)),
-      autoCloseDuration: const Duration(seconds: 3),
-      margin: const EdgeInsets.all(30),
+    // toastification.show(
+    //   context: context,
+    //   alignment: Alignment.topRight,
+    //   style: ToastificationStyle.flatColored,
+    //   type: ToastificationType.success,
+    //   title: Text('Synchronisation effectuée avec succès', style: GoogleFonts.poppins(fontSize: 18)),
+    //   autoCloseDuration: const Duration(seconds: 3),
+    //   margin: const EdgeInsets.all(30),
       
-    );
+    // );
             
 
     setState(() {

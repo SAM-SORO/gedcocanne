@@ -2,8 +2,8 @@
 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:gedcocanne/models/agent.dart';
-import 'package:gedcocanne/models/current_user.dart';
+import 'package:Gedcocanne/models/agent.dart';
+import 'package:Gedcocanne/models/current_user.dart';
 
 class DatabaseService {
   static Isar? _isarInstance;

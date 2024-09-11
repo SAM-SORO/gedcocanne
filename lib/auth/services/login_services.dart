@@ -1,6 +1,6 @@
-import 'package:gedcocanne/models/agent.dart';
-import 'package:gedcocanne/models/current_user.dart';
-import 'package:gedcocanne/services/database.dart';
+import 'package:Gedcocanne/models/agent.dart';
+import 'package:Gedcocanne/models/current_user.dart';
+import 'package:Gedcocanne/services/isar/database.dart';
 import 'package:isar/isar.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
@@ -8,18 +8,19 @@ import 'package:logger/logger.dart';
 
 final logger = Logger();
 
-
   
 String hashPassword(String password) {
   // Utiliser SHA-256 pour le hachage
   return sha256.convert(utf8.encode(password)).toString();
 }
 
-Future<String> authenticateUser(String matricule, String password) async {
+Future<String> authenticateUserInLocal(String matricule, String password) async {
   
   final isar = await Database.getInstance();
 
   final hashedPassword = hashPassword(password);
+
+  //final hashedPassword = password;
 
   try {
     final agent = await isar.agents
@@ -40,7 +41,7 @@ Future<String> authenticateUser(String matricule, String password) async {
       return 'false';
     }
   } catch (e) {
-    //print("Erreur lors de l'authentification : $e");
+    logger.e("Erreur lors de l'authentification : $e");
     return 'error';
   }
 }

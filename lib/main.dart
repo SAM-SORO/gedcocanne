@@ -1,4 +1,4 @@
-import 'package:gedcocanne/views/home.dart';
+import 'package:Gedcocanne/views/home.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:overlay_support/overlay_support.dart';
@@ -27,7 +27,7 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return OverlaySupport.global(
       child: MaterialApp(
-        title: 'gedcocanne',
+        title: 'Gedcocanne',
         debugShowCheckedModeBanner: false,
         themeMode: _isDarkMode ? ThemeMode.dark : ThemeMode.light,
         theme: ThemeData(

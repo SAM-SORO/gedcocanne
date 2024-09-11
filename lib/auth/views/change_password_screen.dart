@@ -1,19 +1,21 @@
 import 'dart:convert';
-import 'package:gedcocanne/assets/imagesReferences.dart';
-import 'package:gedcocanne/auth/services/login_services.dart';
-import 'package:gedcocanne/auth/services/register_services.dart';
+import 'package:Gedcocanne/assets/images_references.dart';
+import 'package:Gedcocanne/auth/services/login_services.dart';
+import 'package:Gedcocanne/auth/services/register_services.dart';
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:overlay_support/overlay_support.dart';
+import 'package:toastification/toastification.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
 
   @override
-  _ChangePasswordViewState createState() => _ChangePasswordViewState();
+  ChangePasswordViewState createState() => ChangePasswordViewState();
 }
 
-class _ChangePasswordViewState extends State<ChangePasswordScreen> {
+class ChangePasswordViewState extends State<ChangePasswordScreen> {
   // Votre code pour l'état de la classe ici
 
 
@@ -152,6 +154,7 @@ class _ChangePasswordViewState extends State<ChangePasswordScreen> {
                   width: double.infinity,
                   constraints: BoxConstraints(
                     minHeight: MediaQuery.of(context).size.height - 80 - 200 - 75,
+                    maxWidth: 700, 
                   ),
                   decoration: const BoxDecoration(
                     boxShadow: [BoxShadow(color: Color.fromARGB(255, 252, 250, 250), blurRadius: 10, spreadRadius: 8, offset: Offset(5, 5))],
@@ -352,10 +355,10 @@ class _ChangePasswordViewState extends State<ChangePasswordScreen> {
         //Mettre à jour le mot de passe
         final success = await updatePassword(matricule!, newPassword);
         if (success) {
-          _showMessage('Mot de passe changé avec succès !');
+          _showSuccessMessage('Mot de passe changé avec succès !');
           _resetFields();
         } else {
-          _showMessage('Erreur lors du changement de mot de passe');
+          _showErrorMessage('Erreur lors du changement de mot de passe', Colors.black);
         }
       } else {
         // Si l'ancien mot de passe est incorrect, afficher l'erreur
@@ -383,13 +386,61 @@ class _ChangePasswordViewState extends State<ChangePasswordScreen> {
 
 
   // Fonction pour afficher les messages d'erreur
-  void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message),
-      duration: const Duration(seconds: 10)), // Durée de 10 secondes
-    );
+  // void _showMessage(String message) {
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text(message),
+  //     duration: const Duration(seconds: 10)), // Durée de 10 secondes
+  //   );
     
+  // }
+
+  
+  void _showErrorMessage(String message, Color color) {
+    //On déclare une variable pour stocker l'entrée de la notification.
+    OverlaySupportEntry? entry;
+
+    //On assigne l'entrée de la notification à cette variable.
+    entry = showSimpleNotification(
+      Row(
+        children: [
+          //const Icon(Icons.error, color: Colors.white), // Icône d'erreur
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              message,
+              style: GoogleFonts.poppins(fontSize: 18, color: Colors.white),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () {
+              //On ferme la notification en appuyant sur la croix.
+              entry?.dismiss(); // Fermer la notification via l'entrée
+            },
+          ),
+        ],
+      ),
+      background: Colors.black, // Couleur de fond pour indiquer une erreur
+      position: NotificationPosition.bottom,
+      duration: const Duration(seconds: 4),
+      slideDismissDirection: DismissDirection.horizontal, // Permet de glisser pour fermer
+    );
   }
+
+
+  
+  void _showSuccessMessage(String message){
+    toastification.show(
+      context: context,
+      alignment: Alignment.topCenter,
+      style: ToastificationStyle.flatColored,
+      type: ToastificationType.success,
+      title: Text(message, style: GoogleFonts.poppins(fontSize: 18)),
+      autoCloseDuration: const Duration(seconds: 4),
+      margin: const EdgeInsets.all(30),
+    );
+  }
+
 
 
   // Fonction pour hacher le mot de passe avec SHA-256

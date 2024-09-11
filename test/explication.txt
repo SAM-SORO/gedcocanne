@@ -1,0 +1,78 @@
+//////  Le type Future<bool>?
+
+
+En fait, la variable _futureAffectation est un objet de type Future<bool>?, et non un booléen. Cela signifie qu'elle représente une opération asynchrone qui, lorsqu'elle est terminée, renvoie un booléen. Vous ne pouvez pas accéder directement à la valeur booléenne tant que l'opération n'est pas terminée.
+
+C'est pourquoi nous utilisons la méthode then() sur l'objet Future pour exécuter une action lorsque le Future est terminé et que le booléen est disponible.
+
+Détail du code :
+_futureAffectation contient un Future<bool> qui renvoie soit true (si des camions sont affectés), soit false.
+then() permet d'accéder au résultat du Future (le booléen hasCamions), une fois que l'opération asynchrone est terminée.
+Le bout de code suivant utilise then() pour exécuter le chargement des camions après avoir vérifié si l'affectation a été confirmée :
+
+dart
+Copier le code
+_futureAffectation?.then((hasCamions) {
+  if (hasCamions) {
+    // Si des camions sont affectés, on les charge
+    _loadCamionsAffecterLigne(lignes[selectedIndexLigne!]['ligneId']);
+  }
+});
+Ici, hasCamions est le résultat du Future (qui est un booléen). Si hasCamions est true, cela signifie qu'il y a des camions affectés à la ligne, et vous pouvez donc les charger avec _loadCamionsAffecterLigne.
+
+Le fonctionnement de Future :
+Future<bool>? : Type du futur qui contient un booléen (true ou false), mais n'est pas encore résolu.
+_futureAffectation?.then(...) : Attendre la résolution du Future et exécuter une action quand elle est disponible.
+Donc _futureAffectation est bien un Future<bool>, et non un booléen immédiat.
+
+
+class YourWidgetState extends State<YourWidget> {
+  Future<bool>? _futureAffectation;
+  int? selectedIndexLigne;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // Exemple d'une liste de lignes que l'utilisateur peut sélectionner
+        ListView.builder(
+          shrinkWrap: true,
+          itemCount: lignes.length,
+          itemBuilder: (context, index) {
+            return ListTile(
+              title: Text('Ligne ${lignes[index]['ligneId']}'),
+              onTap: () {
+                // Lorsqu'une ligne est sélectionnée, on déclenche l'appel API
+                setState(() {
+                  selectedIndexLigne = index;
+                  _futureAffectation = _verifierAffectation(lignes[selectedIndexLigne!]['ligneId']);
+                });
+              },
+            );
+          },
+        ),
+        // FutureBuilder pour afficher le résultat de l'appel API après la sélection
+        if (selectedIndexLigne != null)
+          FutureBuilder<bool>(
+            future: _futureAffectation, // Utiliser le Future après sélection
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return CircularProgressIndicator();
+              } else if (snapshot.hasError) {
+                return Text("Erreur lors de la vérification");
+              } else {
+                bool hasCamions = snapshot.data ?? false;
+                return Text(hasCamions ? 'Des camions sont affectés' : 'Pas de camions affectés');
+              }
+            },
+          ),
+      ],
+    );
+  }
+
+  Future<bool> _verifierAffectation(int ligneId) async {
+    // Utilisez l'ID de la ligne sélectionnée pour vérifier l'affectation
+    bool hasCamions = await verifierAffectationLigneFromAPI(ligneId: ligneId);
+    return hasCamions;
+  }
+}
