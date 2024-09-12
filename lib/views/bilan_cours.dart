@@ -93,7 +93,7 @@ class _BilancoursState extends State<BilanCourScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      "Bilan du stock",
+                      "Rapport du stock Cours à canne",
                       style: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w700),
                     ),
                   ],
@@ -138,13 +138,13 @@ class _BilancoursState extends State<BilanCourScreen> {
                   ? const Center(child: CircularProgressIndicator()) 
                   : Column(
                       children: [
-                        construireInfoTonnage('Quantite de canne en attente', '${qteCanneEnAttenteDeBroyage?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        construireInfoTonnage('Tonnage de canne en attente', '${qteCanneEnAttenteDeBroyage?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
                         const SizedBox(height: 16),
-                        construireInfoTonnage('Quantite de canne decharger', '${qteCanneEntree?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        construireInfoTonnage('Tonnage de canne dechargé', '${qteCanneEntree?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
                         const SizedBox(height: 16),
-                        construireInfoTonnage('Quantite de canne actuelle dans la cour', '${qteCanneRestantDansCours?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        construireInfoTonnage('Tonnage de canne actuelle dans la cour', '${qteCanneRestantDansCours?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
                         const SizedBox(height: 16),
-                        construireInfoTonnage('Quantite de canne broyé', '${qteCanneBroye?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
+                        construireInfoTonnage('Tonnage de canne broyé', '${qteCanneBroye?.toStringAsFixed(2) ?? 'N/A'} tonnes'),
                       ],
                     ),
               ],

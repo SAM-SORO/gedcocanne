@@ -39,6 +39,14 @@ class _TableCanneState extends State<TableCanne> {
   final bool _isLoading = false;
   
   Timer? _timer; // Variable pour stocker le Timer
+
+  // dictionnaire pour obtenir le nom associer au PN_CODE (type de canne)
+  final Map<String, String> dictionnaire = {
+    '1': 'CI',
+    '2': 'CV',
+    '3': 'CP'
+  };
+
   
   
 
@@ -99,7 +107,7 @@ class _TableCanneState extends State<TableCanne> {
                                 itemCount: widget.camionsAttente.length,
                                 itemBuilder: (context, index) {
                                   var camion = widget.camionsAttente[index];
-                                  var datePremPeseeFormater = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.parse(camion['DATEHEUREP1']!));
+                                  var datePremPeseeFormater = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.parse(camion['PS_DATEHEUREP1']!));
                                   return Dismissible(
                                     key: Key(camion['VE_CODE']!), // Clé unique pour chaque élément
                                     direction: DismissDirection.startToEnd,
@@ -117,9 +125,9 @@ class _TableCanneState extends State<TableCanne> {
                                       padding: const EdgeInsets.only(bottom: 15),
                                       margin: const EdgeInsets.only(left: 20),
                                       child: Card(
-                                        color: camion['TECH_COUPE'] == 'RV' || camion['TECH_COUPE'] == 'RB' ? const Color(0xFFF8E7E7) : Colors.white,
+                                        color: camion['TN_CODE'] == '1' ? camion['PS_TECH_COUPE'] == 'RV' || camion['PS_TECH_COUPE'] == 'RB' ? const Color(0xFFF8E7E7) : Colors.white :  Colors.yellow,
                                         child: ListTile(
-                                          title: Text('${camion['VE_CODE']} ( ${camion['PS_CODE']} ) - ${camion['TECH_COUPE']} ', style: GoogleFonts.poppins(fontSize: 14),),
+                                          title: Text('${camion['VE_CODE']} ( ${camion['PS_CODE']} ) - ${dictionnaire[camion['TN_CODE']]} -  Coupe: ${camion['PS_TECH_COUPE']} ', style: GoogleFonts.poppins(fontSize: 14),),
                                           subtitle: Text('poidsP1 : ${camion['PS_POIDSP1']} tonne, $datePremPeseeFormater', style: GoogleFonts.poppins(fontSize: 14)),
                                           leading: const Icon(Icons.fire_truck_rounded),
                                           trailing: Checkbox(
@@ -155,7 +163,7 @@ class _TableCanneState extends State<TableCanne> {
                         Padding(
                           padding: const EdgeInsets.all(8.0),
                           child: Text(
-                            'Camion Déchargé sur la table dernière heure (${camionsDechargerTable.length})',
+                            'Camion Déchargé sur la table à canne (${camionsDechargerTable.length})',
                             style: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.bold),
                           ),
                         ),
@@ -292,13 +300,13 @@ class _TableCanneState extends State<TableCanne> {
       // Extraire les informations du camion
       String veCode = camion['VE_CODE']!;
       double poidsP1 = double.parse(camion['PS_POIDSP1']!);
-      String techCoupe = camion['TECH_COUPE']!;
+      String techCoupe = camion['PS_TECH_COUPE']!;
       String parcelle = camion['PS_CODE']!;
-      DateTime dateHeureP1 = DateTime.parse(camion['DATEHEUREP1']!);
+      DateTime dateHeureP1 = DateTime.parse(camion['PS_DATEHEUREP1']!);
       String? matriculeAgent = await getCurrentUserMatricule();
 
       // Récupérer le poidsTare via l'API
-      double? poidsTare = await recupererPoidsTare(veCode: veCode, dateHeureP1: dateHeureP1);
+      double? poidsTare = await recupererPoidsTare(veCode: veCode);
 
       if (poidsTare == null) {
         _showErrorMessage('Erreur: poidsTare introuvable pour $veCode', const Color(0xFF323232));

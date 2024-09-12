@@ -625,7 +625,7 @@ class _CoursCanneState extends State<CoursCanne> {
                                   final camion = camionsAttenteFiltres[index]; // 
                                   // Conversion des chaînes en types appropriés
                                   var poidsP1 = double.tryParse(camion['PS_POIDSP1']!) ?? 0.0;
-                                  var dateDecharge = DateTime.parse(camion['DATEHEUREP1']!); // Convertir en DateTime
+                                  var dateDecharge = DateTime.parse(camion['PS_DATEHEUREP1']!); // Convertir en DateTime
                                   var dateDechargeFormater = DateFormat('dd/MM/yyyy HH:mm:ss').format(dateDecharge);
 
                                   return Container(
@@ -656,7 +656,7 @@ class _CoursCanneState extends State<CoursCanne> {
                                               ),
                                             ),
                                             TextSpan(
-                                              text: '- ${camion['TECH_COUPE'] }', // Deuxième texte normal
+                                              text: '- ${camion['PS_TECH_COUPE'] }', // Deuxième texte normal
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
@@ -921,7 +921,7 @@ class _CoursCanneState extends State<CoursCanne> {
       //widget.chargerCamionsAttente();
       // Exclure les camions dont la technique de coupe est 'RV' ou 'RB'
       final camionsFiltres = widget.camionsAttente.where((camionAttente) {
-        return !(camionAttente['TECH_COUPE'] == 'RV' || camionAttente['TECH_COUPE'] == 'RB');
+        return !(camionAttente['PS_TECH_COUPE'] == 'RV' || camionAttente['PS_TECH_COUPE'] == 'RB');
       }).toList();
 
       // Mettre à jour l'état local sans notifier le parent
@@ -1029,8 +1029,8 @@ class _CoursCanneState extends State<CoursCanne> {
     try {
       final veCode = camion['VE_CODE']!;
       final poidsP1 = double.parse(camion['PS_POIDSP1']!);
-      final dateHeureP1 = DateTime.parse(camion['DATEHEUREP1']!);
-      final techCoupe = camion['TECH_COUPE']!;
+      final dateHeureP1 = DateTime.parse(camion['PS_DATEHEUREP1']!);
+      final techCoupe = camion['PS_TECH_COUPE']!;
       final parcelle = camion['PS_CODE']!;
       final ligneLibele = ligneSelectionner['libele'];
       final ligneId = ligneSelectionner['ligneId'];

@@ -60,7 +60,7 @@ Future<bool> saveDechargementCoursFromAPI({
 }) async {
   try {
     // Récupérer le poidsTare via l'API
-    final poidsTare = await recupererPoidsTare(veCode: veCode, dateHeureP1: dateHeureP1);
+    final poidsTare = await recupererPoidsTare(veCode: veCode);
 
     if (poidsTare == null) {
       logger.e('Poids tare introuvable');
@@ -186,7 +186,11 @@ Future<List<Map<String, dynamic>>> recupererCamionsLigneFromAPI(int ligneId) asy
   }
 }
 
+
+
+
 //verifier s'il y'a un camion affecter à la ligne
+
 Future<bool> verifierAffectationLigneFromAPI({required int ligneId}) async {  // Utilisation de int ligneId
   try {
     final response = await http.post(
