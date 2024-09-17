@@ -8,7 +8,7 @@ Future<double?> getTonnageCanneDechargerCoursFromAPI({
   required String heureDebut, // Envoi en tant que String
   required String heureFin,   // Envoi en tant que String
 }) async {
-  final uri = Uri.parse('http://10.0.2.2:1445/api/tonnageDechargerCours');
+  final uri = Uri.parse('http://192.168.1.190:80/api/tonnageDechargerCours');
 
   try {
     final response = await http.post(
@@ -41,7 +41,7 @@ Future<double?> getTonnageCanneBroyerDirectFromAPI({
   required String heureFin,
 }) async {
   // URL de l'API pour le tonnage broyé direct
-  final uri = Uri.parse('http://10.0.2.2:1445/api/tonnageBroyerDirect');
+  final uri = Uri.parse('http://192.168.1.190:80/api/tonnageBroyerDirect');
 
   try {
     // Envoi d'une requête POST à l'API
@@ -81,7 +81,7 @@ Future<double?> getTonnageCanneBroyerParTasFromAPI({
   required String heureFin,
 }) async {
   // URL de l'API pour le tonnage broyé par tas
-  final uri = Uri.parse('http://10.0.2.2:1445/api/tonnageBroyerParTas');
+  final uri = Uri.parse('http://192.168.1.190:80/api/tonnageBroyerParTas');
 
   try {
     // Envoi d'une requête POST à l'API
@@ -120,7 +120,7 @@ Future<double?> getTonnageCanneBroyerParTasFromAPI({
 //la quantite de canne restant dans la cour
 Future<double?> getTonnageCanneRestantCoursFromAPI() async {
   // URL de l'API pour le tonnage restant dans la cour
-  final uri = Uri.parse('http://10.0.2.2:1445/api/tonnageRestantCourt');
+  final uri = Uri.parse('http://192.168.1.190:80/api/tonnageRestantCourt');
 
   try {
     // Envoi d'une requête POST à l'API sans corps (pas de paramètres requis)
@@ -155,7 +155,7 @@ Future<double?> getTonnageCanneEntree({
   required String heureDebut,
   required String heureFin,
 }) async {
-  final uri = Uri.parse('http://10.0.2.2:1445/api/getTonnageCanneEntree');
+  final uri = Uri.parse('http://192.168.1.190:80/api/getTonnageCanneEntree');
 
   try {
     // Envoi d'une requête POST à l'API avec les heures de début et de fin

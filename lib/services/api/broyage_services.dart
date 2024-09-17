@@ -14,7 +14,7 @@ final logger = Logger();
 Future<bool> addTasDansTableCanneFromAPI({
   required int tasId,  // L'ID de la ligne est un entier
 }) async {
-  const String url = 'http://10.0.2.2:1445/api/addTasInTableCanne'; // Remplacez par l'URL correcte
+  const String url = 'http://192.168.1.190:80/api/addTasInTableCanne'; // Remplacez par l'URL correcte
 
   final agentMatricule = await getCurrentUserMatricule();
 
@@ -54,7 +54,7 @@ Future<bool> addTasDansTableCanneFromAPI({
 Future<String> retirerTasDeTableCanneFromAPI({
   required int tasId,  // L'ID de la ligne
 }) async {
-  const String url = 'http://10.0.2.2:1445/api/retraitTasDeTableCanne'; // Remplacez par l'URL correcte
+  const String url = 'http://192.168.1.190:80/api/retraitTasDeTableCanne'; // Remplacez par l'URL correcte
 
   final agentMatricule = await getCurrentUserMatricule(); // Récupération du matricule de l'agent
 
@@ -103,7 +103,7 @@ Future<String> retirerTasDeTableCanneFromAPI({
 
 //verifier si tous les tas d'une ligne donnée sont broyé c'est à dire on un etat=1
 Future<bool> verifierTousTasCochesFromAPI(int ligneId) async {
-  String url = 'http://10.0.2.2:1445/api/verifierTousTasCoches/$ligneId'; // Remplacez par l'URL correcte
+  String url = 'http://192.168.1.190:80/api/verifierTousTasCoches/$ligneId'; // Remplacez par l'URL correcte
 
   try {
     final response = await http.get(
@@ -131,7 +131,7 @@ Future<bool> updateNombreTasFromAPI({
   required int ligneId,
   required int nouveauNombreTas,
 }) async {
-  const String url = 'http://10.0.2.2:1445/api/updateNombreTas'; // Remplacez par l'URL correcte
+  const String url = 'http://192.168.1.190:80/api/updateNombreTas'; // Remplacez par l'URL correcte
 
   try {
     // Envoie d'une requête POST à l'API
@@ -167,7 +167,7 @@ Future<bool> updateNombreTasFromAPI({
 Future<bool> updateEtatBroyageOfCamionFromAPI(int ligneId) async {
   try {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/updateEtatBroyageOfCamionAffecte'),
+      Uri.parse('http://192.168.1.190:80/api/updateEtatBroyageOfCamionAffecte'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'ligneId': ligneId}),
     );

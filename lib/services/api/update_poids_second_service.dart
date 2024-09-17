@@ -13,7 +13,7 @@ final logger = Logger();
 Future<bool> thereAreSynchronisationOfP2FromAPI() async {
   try {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:1445/api/checkPoidsP2Null'),
+      Uri.parse('http://192.168.1.190:80/api/checkPoidsP2Null'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -35,7 +35,7 @@ Future<bool> thereAreSynchronisationOfP2FromAPI() async {
 Future<List<Map<String, dynamic>>> getCamionsWithP2NullCoursFromAPI() async {
   try {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:1445/api/camionsP2NullCours'),
+      Uri.parse('http://192.168.1.190:80/api/camionsP2NullCours'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -56,7 +56,7 @@ Future<List<Map<String, dynamic>>> getCamionsWithP2NullCoursFromAPI() async {
 Future<List<Map<String, dynamic>>> getCamionsWithP2NullTableFromAPI() async {
   try {
     final response = await http.get(
-      Uri.parse('http://10.0.2.2:1445/api/camionsP2NullTable'),
+      Uri.parse('http://192.168.1.190:80/api/camionsP2NullTable'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -87,7 +87,7 @@ Future<List<Map<String, dynamic>>> getPoidsP2ForTableFromAPI(List<Map<String, dy
     }).toList();
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/getPoidsP2'),
+      Uri.parse('http://192.168.1.190:80/api/getPoidsP2'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'camions': camionsFormatted}),
     );
@@ -125,7 +125,7 @@ Future<List<Map<String, dynamic>>> getPoidsP2ForCoursFromAPI(List<Map<String, dy
     }).toList();
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/getPoidsP2'),
+      Uri.parse('http://192.168.1.190:80/api/getPoidsP2'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'camions': camionsFormatted}),
     );
@@ -152,7 +152,7 @@ Future<List<Map<String, dynamic>>> getPoidsP2ForCoursFromAPI(List<Map<String, dy
 Future<bool> updatePoidsP2CoursFromAPI(List<Map<String, dynamic>> camions) async {
   try {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/updatePoidsP2Cours'),
+      Uri.parse('http://192.168.1.190:80/api/updatePoidsP2Cours'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'camions': camions}),
     );
@@ -177,7 +177,7 @@ Future<bool> updatePoidsP2CoursFromAPI(List<Map<String, dynamic>> camions) async
 Future<bool> updatePoidsP2TableFromAPI(List<Map<String, dynamic>> camions) async {
   try {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/updatePoidsP2Table'),
+      Uri.parse('http://192.168.1.190:80/api/updatePoidsP2Table'),
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode({'camions': camions}),
     );

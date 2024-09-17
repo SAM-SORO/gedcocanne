@@ -311,6 +311,7 @@ class _CoursCanneState extends State<CoursCanne> {
                                                           if (tas['tasEtat'] == 1) {
                                                               
                                                             double tasPoids = tas['poids'].toDouble();
+
                                                             //print(tasPoids);
                                                             //debugTasPoids(tasPoids);
                                                             //si une case est coche enregistrer son broyage
@@ -547,7 +548,7 @@ class _CoursCanneState extends State<CoursCanne> {
                                                                         width: 1, // Largeur de la bordure
                                                                       ),
                                                                     ),
-                                                                                                                                    
+                                                                                                                                
                                                                   ),
                                                                   controller: TextEditingController(text: ligne['tonnageTasBroyes'].toString()),
                                                                 ),

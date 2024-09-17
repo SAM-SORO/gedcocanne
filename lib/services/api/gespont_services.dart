@@ -9,7 +9,7 @@ final logger = Logger();
 Future<List<Map<String, String>>> getCamionAttenteFromAPI() async {
   try {
     final response = await http
-        .get(Uri.parse('http://10.0.2.2:1445/api/camionsEnAttente'))
+        .get(Uri.parse('http://192.168.1.190:80/api/camionsEnAttente'))
         .timeout(const Duration(minutes: 5)); // Timeout après 5 minutes
 
     if (response.statusCode == 200) {
@@ -38,7 +38,7 @@ Future<double?> recupererPoidsTare({
   required String veCode,
 }) async {
   try {
-    final uri = Uri.parse('http://10.0.2.2:1445/api/getPoidsTare?veCode=$veCode');
+    final uri = Uri.parse('http://192.168.1.190:80/api/getPoidsTare?veCode=$veCode');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

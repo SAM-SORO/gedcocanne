@@ -10,7 +10,7 @@ final logger = Logger();
 Future<List<Map<String, dynamic>>> getCamionDechargerCoursFromAPI() async {
   try {
     final response = await http
-        .get(Uri.parse('http://10.0.2.2:1445/api/camionsDechargerCours'))
+        .get(Uri.parse('http://192.168.1.190:80/api/camionsDechargerCours'))
         .timeout(const Duration(minutes: 10)); // Timeout après 10 secondes
 
     if (response.statusCode == 200) {
@@ -28,7 +28,7 @@ Future<List<Map<String, dynamic>>> getCamionDechargerCoursFromAPI() async {
 
 //recuperer les camions decharger dans la cour à canne dans les dernière heure
 Future<List<Map<String, dynamic>>> getCamionDechargerCoursDerniereHeureFromAPI() async {
-  const String url = 'http://10.0.2.2:1445/api/camionsDechargerCoursDerniereHeure';
+  const String url = 'http://192.168.1.190:80/api/camionsDechargerCoursDerniereHeure';
   
   try {
     final response = await http.get(Uri.parse(url), headers: {
@@ -91,7 +91,7 @@ Future<bool> saveDechargementCoursFromAPI({
     //logger.d('Données envoyées: $data');
 
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/enregistrerDechargementCours'),
+      Uri.parse('http://192.168.1.190:80/api/enregistrerDechargementCours'),
       body: json.encode(data),
       headers: {'Content-Type': 'application/json'},
     );
@@ -119,7 +119,7 @@ Future<bool> deleteCamionDechargerCoursFromAPI({
 }) async {
   try {
     final response = await http.delete(
-      Uri.parse('http://10.0.2.2:1445/api/deleteCamionDechargerCours'),
+      Uri.parse('http://192.168.1.190:80/api/deleteCamionDechargerCours'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'veCode': veCode,
@@ -144,7 +144,7 @@ Future<bool> deleteCamionDechargerCoursFromAPI({
 // Future<List<Map<String, dynamic>>> recupererCamionsLigneFromAPI(String ligneLibele) async {
 //   try {
 //     final response = await http.post(
-//       Uri.parse('http://10.0.2.2:1445/api/getCamionsOfLigne'),
+//       Uri.parse('http://192.168.1.190:80/api/getCamionsOfLigne'),
 //       headers: {'Content-Type': 'application/json'},
 //       body: json.encode({'ligneLibele': ligneLibele}),
 //     );
@@ -167,7 +167,7 @@ Future<bool> deleteCamionDechargerCoursFromAPI({
 // Fonction pour récupérer les camions affectés à une ligne depuis l'API
 Future<List<Map<String, dynamic>>> recupererCamionsLigneFromAPI(int ligneId) async {
   final response = await http.post(
-    Uri.parse('http://10.0.2.2:1445/api/getCamionsOfLigne'),
+    Uri.parse('http://192.168.1.190:80/api/getCamionsOfLigne'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
@@ -194,7 +194,7 @@ Future<List<Map<String, dynamic>>> recupererCamionsLigneFromAPI(int ligneId) asy
 Future<bool> verifierAffectationLigneFromAPI({required int ligneId}) async {  // Utilisation de int ligneId
   try {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:1445/api/verifierAffectationLigne'),
+      Uri.parse('http://192.168.1.190:80/api/verifierAffectationLigne'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'ligneId': ligneId}),  // Envoi de ligneId comme int
     );
