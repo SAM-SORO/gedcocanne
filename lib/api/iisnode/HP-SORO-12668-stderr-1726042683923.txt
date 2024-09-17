@@ -1,3 +1,0 @@
-(node:12668) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
-(Use `node --trace-deprecation ...` to show where the warning was created)
-Database connection failed: Error: [Microsoft][SQL Server Native Client 11.0][SQL Server]�chec de l'ouverture de session de l'utilisateur�'IIS APPPOOL\gedcocanneAPI'.,Error: [Microsoft][SQL Server Native Client 11.0][SQL Server]Impossible d'ouvrir la base de donn�es "gedcocanne" demand�e par la connexion. La connexion a �chou�.

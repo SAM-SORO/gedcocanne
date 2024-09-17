@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:Gedcocanne/auth/services/login_services.dart';
+import 'package:Gedcocanne/models/agent.dart';
 import 'package:Gedcocanne/services/api/broyage_services.dart';
 import 'package:Gedcocanne/services/api/cours_canne_services.dart';
 import 'package:Gedcocanne/services/api/ligne_tas_services.dart';
@@ -62,6 +63,10 @@ class _CoursCanneState extends State<CoursCanne> {
 
   //pour chaque ligne on aura un champ textFiel il faut donc un controlleur pour chacun afin d'avoir un control sur la valeur saisi
   late List<TextEditingController> _controllers= [];
+
+  //agent Connecter
+
+  late String agentConnecter;
 
   //FocusNode _focusNode = FocusNode();
 
@@ -746,6 +751,10 @@ class _CoursCanneState extends State<CoursCanne> {
                                         final poidsP2 = camion['poidsP2']?.toString();
                                         final poidsTare = camion['poidsTare']?.toString();
                                         final poidsNet = camion['poidsNet']?.toString();
+                                        //verififier l'auteur de l'affectation. l'objectif est de verifier si c'est l'aggent qui a fait l'affectation qui est connecter afin de ne pas permettre le retrait d'un camion affecter par un autre agent
+                                        final agentAffection = camion['agentMatricule']?.toString();
+                                        bool isSameAgent = agentConnecter == agentAffection;
+                                        //savoir si c'est verouller
                                         bool isVerrouillee = lignesVerrouillees.contains(lignes[selectedIndexLigne!]['ligneId']);
                                         return InkWell(
                                           child: Container(
@@ -767,11 +776,13 @@ class _CoursCanneState extends State<CoursCanne> {
                                                 '${poidsP2 != null ? 'Poids P2 : $poidsP2 tonnes, ' : 'Poids Tare : $poidsTare tonnes, '}'
                                                 'Poids Net : $poidsNet tonnes',
                                               ),
-                                              trailing: !isVerrouillee ? IconButton(
-                                                icon: const Icon(Icons.remove_circle),
-            
-                                                onPressed: () {_retirerCamion(index) ; _reloadCamionsAttente();},
-                                              ) : null,
+                                              //si la ligne n'est pas verouiller activer la possibilite de retirer un camion affecter 
+                                              trailing: isSameAgent ? !isVerrouillee ? IconButton(
+                                                                                        icon: const Icon(Icons.remove_circle),
+                                                                                        onPressed: () {_retirerCamion(index) ; _reloadCamionsAttente();},
+                                                                                        ) 
+                                                                                      : null
+                                                                    :null
                                             ),
                                           ),
                                         );
@@ -885,6 +896,9 @@ class _CoursCanneState extends State<CoursCanne> {
   
   //fonction pour charger les camions affecter a la ligne selectionner
   Future<void> _loadCamionsAffecterLigne(int ligneId) async {
+
+    agentConnecter = (await getCurrentUserMatricule())!;
+
     setState(() {
       _isLoadingCamionAffecter = true; // Commencer le chargement
     });

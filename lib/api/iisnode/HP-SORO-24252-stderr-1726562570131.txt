@@ -1,0 +1,5 @@
+(node:24252) [DEP0005] DeprecationWarning: Buffer() is deprecated due to security and usability issues. Please use the Buffer.alloc(), Buffer.allocUnsafe(), or Buffer.from() methods instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+SQL error: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Nom de colonne non valide�: 'PS_DATEHEUREP1'.
+SQL error: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Nom de colonne non valide�: 'PS_DATEHEUREP1'.
+SQL error: [Microsoft][ODBC Driver 17 for SQL Server][SQL Server]Nom de colonne non valide�: 'PS_DATEHEUREP1'.

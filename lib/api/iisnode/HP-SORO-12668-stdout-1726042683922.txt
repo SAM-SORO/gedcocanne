@@ -1,1 +1,0 @@
-Serveur en cours d'exécution sur le port \\.\pipe\55cf7411-f55f-4b2f-aa6a-9b07ce0601f4

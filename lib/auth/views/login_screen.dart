@@ -60,7 +60,7 @@ class LoginViewState extends State<LoginScreen> {
                     ),
                   ),
                   Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 200),
+                    padding: const EdgeInsets.symmetric(horizontal: 140),
                     
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -281,7 +281,7 @@ class LoginViewState extends State<LoginScreen> {
                             ),
                           ),
 
-                          const SizedBox(height: 40),
+                          const SizedBox(height: 10),
                           
                         ],
                       ),

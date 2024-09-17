@@ -26,11 +26,13 @@ class _BilancoursState extends State<BilanCourScreen> {
 
   bool _chargementEnCours = false; // Indicateur de chargement
 
+  late Color backgroundColor;
+
+
   @override
   void initState() {
     super.initState();
     _initialiserHeures();
-
     // Listener pour recalculer les tonnages lorsque les heures changent
     heureDebutController.addListener(_calculerTonnage);
     heureFinController.addListener(_calculerTonnage);
@@ -63,6 +65,9 @@ class _BilancoursState extends State<BilanCourScreen> {
 
   @override
   Widget build(BuildContext context) {
+    //couleur de l'arriere plan
+    Color backgroundColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
@@ -109,11 +114,22 @@ class _BilancoursState extends State<BilanCourScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(2),
                         ],
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Heure de début',
-                          suffixIcon: Icon(Icons.access_time),
+                          suffixIcon: Icon(
+                            Icons.access_time,
+                            color: backgroundColor == const Color(0xff000000)
+                              ? Colors.white  // Icône en blanc en mode sombre
+                              : Colors.black,  // Icône en noir en mode clair
+                          ),
+                        ),
+                        style: TextStyle(
+                          color: backgroundColor == const Color(0xff000000) 
+                            ? Colors.white  // Texte en blanc en mode sombre
+                            : Colors.black,  // Texte en noir en mode clair
                         ),
                       ),
+
                     ),
                     const SizedBox(width: 16),
                     Expanded(
@@ -124,12 +140,29 @@ class _BilancoursState extends State<BilanCourScreen> {
                           FilteringTextInputFormatter.digitsOnly,
                           LengthLimitingTextInputFormatter(2),
                         ],
-                        decoration: const InputDecoration(
+                        decoration: InputDecoration(
                           labelText: 'Heure de fin',
-                          suffixIcon: Icon(Icons.access_time),
+                          suffixIcon: Icon(
+                            Icons.access_time,
+                            color: backgroundColor == const Color(0xff000000)
+                              ? Colors.white  // Icône en blanc en mode sombre
+                              : Colors.black,  // Icône en noir en mode clair
+                          ),
+                          //ajouter une couleur de label personnalisée
+                          // labelStyle: TextStyle(
+                          //   color: backgroundColor == const Color(0xff000000)
+                          //     ? Colors.white // Label en blanc en mode sombre
+                          //     : Colors.black, // Label en noir en mode clair
+                          // ),
+                        ),
+                        style: TextStyle(
+                          color: backgroundColor == const Color(0xff000000)
+                            ? Colors.white  // Texte en blanc en mode sombre
+                            : Colors.black,  // Texte en noir en mode clair
                         ),
                       ),
                     ),
+
                   ],
                 ),
                 const SizedBox(height: 16),

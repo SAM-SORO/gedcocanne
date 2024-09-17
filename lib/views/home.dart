@@ -17,7 +17,7 @@ import 'package:salomon_bottom_bar/salomon_bottom_bar.dart';
 import 'package:toastification/toastification.dart';
 
 class Home extends StatefulWidget {
-  final Function(bool) toggleTheme;
+  final Function(bool) toggleTheme; //fonction de callback
   final bool isDarkMode; // Passer l'état du mode sombre
 
   const Home({super.key, required this.toggleTheme, required this.isDarkMode});

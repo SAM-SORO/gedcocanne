@@ -1,2 +1,0 @@
-Serveur en cours d'exécution sur le port \\.\pipe\31a3b3b7-31c5-4318-b786-e2beddad40e3
-Connected to MSSQL
