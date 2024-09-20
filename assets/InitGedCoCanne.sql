@@ -6,13 +6,11 @@ BEGIN
 END
 GO
 
-
 USE gedcocanne; -- S�lectionne la base de donn�es gedcocanne
 GO
-
 --------------------------------------------------------  AGENT
 
-IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AGENTS')
+IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'AGENT')
 BEGIN
     -- Cr�e la table AGENT
 		CREATE TABLE AGENT (

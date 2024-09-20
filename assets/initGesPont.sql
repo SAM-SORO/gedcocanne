@@ -5,7 +5,6 @@ BEGIN
 END
 GO
 
-
 USE DB_GESPONT_FK;
 
 
@@ -22,9 +21,8 @@ BEGIN
 END
 GO
 
-
 -- V�rifie si la table F_TYPECANNE est vide avant d'ins�rer les donn�es
-IF NOT EXISTS (SELECT 1 FROM F_TYPECANNES)
+IF NOT EXISTS (SELECT 1 FROM F_TYPECANNE)
 BEGIN
     -- Insertion des types de canne
     INSERT INTO F_TYPECANNE (TN_CODE, TN_LIBELE)
