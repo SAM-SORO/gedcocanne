@@ -1,9 +1,10 @@
 import 'dart:async';
 import 'package:Gedcocanne/auth/services/login_services.dart';
-import 'package:Gedcocanne/models/agent.dart';
 import 'package:Gedcocanne/services/api/broyage_services.dart';
 import 'package:Gedcocanne/services/api/cours_canne_services.dart';
+import 'package:Gedcocanne/services/api/gespont_services.dart';
 import 'package:Gedcocanne/services/api/ligne_tas_services.dart';
+import 'package:Gedcocanne/services/api/table_canne_services.dart';
 import 'package:Gedcocanne/services/viewsFunction/cours_canne_functions.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -18,17 +19,21 @@ class CoursCanne extends StatefulWidget {
   //réçoit la liste des camions en attente de son parent
   final List<Map<String, String>> camionsAttente;
   //callback pour informer le parent lorsqu'un element est retirer de la liste
-  final Function(Map<String, String>) onCamionsAttenteUpdated;
+  final Function(Map<String, String>) onCamionsAttenteSupprimer;
   //celui va permet de recharger la liste des caamions en attente dans le cas d'une supression par exemple
   final Future<void> Function() chargerCamionsAttente;
+  //booleen pour etre informer de si le chargement des camions en attente est terminer ou pas
+  final bool isLoadingCamonAttente;
 
   const CoursCanne({
     super.key, 
     required this.updateP2AndSyncAndResetTimer, 
     required this.isSwitched, 
+    required this.onCamionsAttenteSupprimer, 
+    required this.chargerCamionsAttente,
     required this.camionsAttente, 
-    required this.onCamionsAttenteUpdated, 
-    required this.chargerCamionsAttente,});
+    required this.isLoadingCamonAttente,
+  });
 
   @override
   State<CoursCanne> createState() => _CoursCanneState();
@@ -54,11 +59,7 @@ class _CoursCanneState extends State<CoursCanne> {
 
   Timer? _debounce;
 
-  // Booléen pour suivre si le chargement des camions en attente est en cours ou pas
-  final bool _isLoadingCamionAttente = false;
-
   // Booléen pour suivre si le chargement des lignes est en cours ou pas
-
   bool _isLoadingLigne = true;
 
   //pour chaque ligne on aura un champ textFiel il faut donc un controlleur pour chacun afin d'avoir un control sur la valeur saisi
@@ -67,6 +68,10 @@ class _CoursCanneState extends State<CoursCanne> {
   //agent Connecter
 
   late String agentConnecter;
+
+  //L'un des problèmes rencontré est que l'utilisateur peut cliquer rapidement deux fois sur le bouton de retrait du camion, ce qui déclenche l'action de retrait du camion deux fois. Le retrait est réalisé avec succès lors de la première action, mais comme l'élément a déjà été retiré, la deuxième tentative échoue.
+  //Pour résoudre ce problème, nous utiliserons un Débouncer pour empêcher les clics rapides
+  bool _isInCoursOfRetrait = false;
 
   //FocusNode _focusNode = FocusNode();
 
@@ -108,7 +113,6 @@ class _CoursCanneState extends State<CoursCanne> {
   Widget build(BuildContext context) {
     int nombreDeCamionEnAttente  = camionsAttenteFiltres.length ;
     int nombreCamionAffecter = camionsLigne.length;
-
     //bool _isHovered = false; //permet de savoir si on fait un hover ou pas sur l'elelement de la listVew
     return Scaffold(
       body: Row(
@@ -604,7 +608,7 @@ class _CoursCanneState extends State<CoursCanne> {
 
                 //premiere section de la deuxieme grande colonne
                 Expanded(
-                  child: _isLoadingCamionAttente
+                  child: widget.isLoadingCamonAttente
                         ? const Center(child: CircularProgressIndicator()) // Afficher le CircularProgressIndicator si en chargement
                         : camionsAttenteFiltres.isEmpty
                             ? RefreshIndicator(
@@ -648,34 +652,43 @@ class _CoursCanneState extends State<CoursCanne> {
                                           style: GoogleFonts.poppins(fontSize: 14, color: Colors.black), // Style par défaut
                                           children: [
                                             TextSpan(
-                                              text: '${camion['VE_CODE']} ', // Premier texte en gras
+                                              text: '${camion['VE_CODE']} ', // code du camion
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             TextSpan(
-                                              text: '(${camion['PS_CODE']})', // Deuxième texte normal
+                                              text: '(${camion['PS_CODE']})', // parcelle
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                             TextSpan(
-                                              text: '- ${camion['PS_TECH_COUPE'] }', // Deuxième texte normal
+                                              text: ' - ${camion['LIBELE_TYPECANNE']}', // type de canne
                                               style: GoogleFonts.poppins(
                                                 fontSize: 14,
-                                                fontWeight: FontWeight.bold,
+                                                //fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: ' - ${camion['PS_TECH_COUPE']}', // technique de coupe
+                                              style: GoogleFonts.poppins(
+                                                fontSize: 14,
+                                                //fontWeight: FontWeight.bold,
                                               ),
                                             ),
                                           ],
                                         ),
-                                      ),
-                                      
+                                      ),  
                                       leading: const Icon(Icons.fire_truck_rounded),
-                                      subtitle: Text(
-                                        'Poids P1 : $poidsP1 tonnes, $dateDechargeFormater',
-                                        style: GoogleFonts.poppins(fontSize: 14),
+                                      subtitle: Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
+                                          'Poids P1 : $poidsP1 tonnes, $dateDechargeFormater',
+                                          style: GoogleFonts.poppins(fontSize: 14),
+                                        ),
                                       ),
                                       trailing: selectedIndexLigne != null
                                           ? Checkbox(
@@ -752,9 +765,10 @@ class _CoursCanneState extends State<CoursCanne> {
                                         final poidsP2 = camion['poidsP2']?.toString();
                                         final poidsTare = camion['poidsTare']?.toString();
                                         final poidsNet = camion['poidsNet']?.toString();
+                                        final libelleTypeCanne = camion['libelleTypeCanne']?.toString();
                                         //verififier l'auteur de l'affectation. l'objectif est de verifier si c'est l'aggent qui a fait l'affectation qui est connecter afin de ne pas permettre le retrait d'un camion affecter par un autre agent
                                         final agentAffection = camion['agentMatricule']?.toString();
-                                        bool isSameAgent = agentConnecter == agentAffection;
+                                        bool canCancelAffectation = agentConnecter == agentAffection || agentConnecter == "admin";
                                         //savoir si c'est verouller
                                         bool isVerrouillee = lignesVerrouillees.contains(lignes[selectedIndexLigne!]['ligneId']);
                                         return InkWell(
@@ -769,7 +783,7 @@ class _CoursCanneState extends State<CoursCanne> {
                                               hoverColor: Colors.lightBlueAccent, // Couleur de survol (Desktop/Web)
                                               leading: const Icon(Icons.fire_truck_rounded),
                                               title: Text(
-                                                '$veCode ($parcelle) - $techCoupe',
+                                                '$veCode ($parcelle) - $libelleTypeCanne - $techCoupe ',
                                                 style: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.bold),
                                               ),
                                               subtitle: Text(
@@ -778,9 +792,11 @@ class _CoursCanneState extends State<CoursCanne> {
                                                 'Poids Net : $poidsNet tonnes',
                                               ),
                                               //si la ligne n'est pas verouiller activer la possibilite de retirer un camion affecter 
-                                              trailing: isSameAgent ? !isVerrouillee ? IconButton(
+                                              trailing: canCancelAffectation ? !isVerrouillee ? IconButton(
                                                                                         icon: const Icon(Icons.remove_circle),
-                                                                                        onPressed: () {_retirerCamion(index) ; _reloadCamionsAttente();},
+                                                                                        onPressed: () {
+                                                                                          _retirerCamion(index) ; 
+                                                                                         _reloadCamionsAttente();},
                                                                                         ) 
                                                                                       : null
                                                                     :null
@@ -933,10 +949,13 @@ class _CoursCanneState extends State<CoursCanne> {
   // Méthode pour filtrer les camions en attente localement
   void _filterCamionsAttentePourLaCour() {
     try {
-      //widget.chargerCamionsAttente();
-      // Exclure les camions dont la technique de coupe est 'RV' ou 'RB'
+      widget.chargerCamionsAttente();
+      // Exclure les camions dont le type de canne est villageoise ou privé (TN_CODE != 1 ) et ceux dont le type canne industrielle avec une technique de coupe egal a 'RV' ou 'RB' 
+      // Seuls les camions avec un type de canne industriel On exclut les camions avec une technique de coupe égale à 'RV' ou 'RB'.
       final camionsFiltres = widget.camionsAttente.where((camionAttente) {
-        return !(camionAttente['PS_TECH_COUPE'] == 'RV' || camionAttente['PS_TECH_COUPE'] == 'RB');
+        return camionAttente['TN_CODE'] == '1' && 
+              camionAttente['PS_TECH_COUPE'] != 'RV' && 
+              camionAttente['PS_TECH_COUPE'] != 'RB';
       }).toList();
 
       // Mettre à jour l'état local sans notifier le parent
@@ -952,7 +971,7 @@ class _CoursCanneState extends State<CoursCanne> {
 
   //pour recharger la liste des camions en attent
   Future<void> _reloadCamionsAttente() async {
-    
+
     widget.chargerCamionsAttente();
 
     //en fonction de l'etat du switch afficher les camions en attente
@@ -960,11 +979,71 @@ class _CoursCanneState extends State<CoursCanne> {
       camionsAttenteFiltres = widget.camionsAttente;  // Charger tous les camions en attente sans exclusion selon la technique de coupe
 
     } else {
+
       _filterCamionsAttentePourLaCour(); // charger les camions en atttente a decharger dans la cour (on tient compte de la technique de coupe)
     }
     //_updatePoidsP2();
     //widget.updateP2AndSyncAndResetTimer();
 
+  }
+
+    Future< List<Map<String, String>> > _rechargerCamionsAttente() async {
+      List<Map<String, String>> camionsAttente = [];
+
+      try {
+
+        // Appeler la fonction avec un timeout
+        final List<Map<String, String>> camionsAttenteData = await getCamionAttenteFromAPI();
+        List<Map<String, dynamic>> camionsCoursData = await getCamionDechargerCoursFromAPI();
+        List<Map<String, dynamic>> camionsTableData = await getCamionDechargerTableFromAPI();
+
+        // Vérifier si les données sont nulles ou vides
+        if (camionsAttenteData.isEmpty) {
+          camionsAttente = []; // Assurez-vous que camionsAttente est une liste vide si aucune donnée n'est récupérée
+        } else {
+          camionsAttente = camionsAttenteData;
+        }
+
+        if (camionsCoursData.isEmpty) {
+          camionsCoursData = [];
+        }
+
+        if (camionsTableData.isEmpty) {
+          camionsTableData = [];
+        }
+
+        // Combiner les camions déchargés de DechargerCours et DechargerTable
+        final List<Map<String, dynamic>> allCamionsDecharger = [
+          ...camionsTableData,
+          ...camionsCoursData,
+        ];
+
+        // Filtrer les camions en attente pour exclure ceux déjà déchargés
+        final filteredCamionsAttente = camionsAttente.where((camionAttente) {
+          DateTime dateHeureP1Attente = DateTime.parse(camionAttente['PS_DATEHEUREP1']!);
+
+          return !allCamionsDecharger.any((camion) {
+            DateTime dateHeureP1Decharge = DateTime.parse(camion['dateHeureP1']); // Assurez-vous que les clés et formats sont corrects
+
+            return dateHeureP1Attente.isAtSameMomentAs(dateHeureP1Decharge);
+          });
+        }).toList();
+
+        if (mounted) {  
+          setState(() {  
+            camionsAttente = filteredCamionsAttente; // Met à jour la liste des camions  
+          });  
+        }
+        return camionsAttente;
+      } catch (e) {
+        // s'il y'a un soucis arreter l'indicateur de chargement pour lui afficher le message
+        // Vérifier si le widget est monté avant d'appeler setState
+      
+        if (mounted) {
+          _showMessage("Le chargement des camions en attente a échoué. Connectez vous au réseau.");
+        }
+        return camionsAttente;
+      }
   }
 
   //pour recharger la liste des camions affecter a une ligne
@@ -974,8 +1053,6 @@ class _CoursCanneState extends State<CoursCanne> {
     _loadLignes();
   }
 
-
- 
   
   //permet de marquer les ligne veouiller lors de la construction du card des lignes
   // Future<void> _loadVerouillageLigne(int ligneId) async {
@@ -1047,6 +1124,7 @@ class _CoursCanneState extends State<CoursCanne> {
       final dateHeureP1 = DateTime.parse(camion['PS_DATEHEUREP1']!);
       final techCoupe = camion['PS_TECH_COUPE']!;
       final parcelle = camion['PS_CODE']!;
+      final codeCanne = camion['TN_CODE'];
       final ligneLibele = ligneSelectionner['libele'];
       final ligneId = ligneSelectionner['ligneId'];
 
@@ -1059,6 +1137,7 @@ class _CoursCanneState extends State<CoursCanne> {
         dateHeureP1: dateHeureP1,
         ligneLibele: ligneLibele,
         ligneId : ligneId,
+        codeCanne: codeCanne,
       );
 
       // Si l'enregistrement se fait sans souci
@@ -1136,7 +1215,7 @@ class _CoursCanneState extends State<CoursCanne> {
         });
 
         // Appeler le callback pour informer le parent que la liste a changé
-        widget.onCamionsAttenteUpdated(camion);
+        widget.onCamionsAttenteSupprimer(camion);
 
         // Recharger les données après l'affectation
         await _loadCamionsAffecterLigne(ligneId);
@@ -1155,82 +1234,93 @@ class _CoursCanneState extends State<CoursCanne> {
     
   }
 
-  // Retirer un camion affecté à une ligne
+
   Future<void> _retirerCamion(int camionIndex) async {
-    if (selectedIndexLigne != null) {
-      // Récupération du camion à partir de la liste des camions affectés
-      var camion = camionsLigne[camionIndex];
+    if (_isInCoursOfRetrait) {
+      return; // Si une autre opération est en cours, on ignore les clics suivants
+    }
 
-      // Extraction des valeurs à partir du Map
-      final veCode = camion['veCode'];
-      final dateHeureP1 = camion['dateHeureP1']; // Assurez-vous que c'est bien un DateTime
+    setState(() {
+      _isInCoursOfRetrait = true; // Marque l'opération comme en cours
+    });
 
-      // Supprimer le camion via l'API
-      bool success = await deleteCamionDechargerCoursFromAPI(
-        veCode: veCode, 
-        dateHeureP1: dateHeureP1
-      );
+    try {
+      if (selectedIndexLigne != null) {
+        var camion = camionsLigne[camionIndex];
+        final veCode = camion['veCode'];
+        final dateHeureP1 = camion['dateHeureP1'];
 
-      if (success) {
-        // Mise à jour du tonnage de la ligne
-        final ligneId = lignes[selectedIndexLigne!]['ligneId'];
-        final ligneLibele = lignes[selectedIndexLigne!]['libele'];
+        bool success = await deleteCamionDechargerCoursFromAPI(
+          veCode: veCode,
+          dateHeureP1: dateHeureP1,
+        );
 
-        bool successUpdateLigne = await updateLigneTonnageFromAPI(ligneId: ligneId, ligneLibele: ligneLibele);
+        if (success) {
+          final ligneId = lignes[selectedIndexLigne!]['ligneId'];
+          final ligneLibele = lignes[selectedIndexLigne!]['libele'];
 
-        if (successUpdateLigne) {
-          // Répartir le tonnage sur les tas après la mise à jour de la ligne
-          bool successRepartition = await repartirTonnageTasFromAPI(ligneId: ligneId);
-
-          if (successRepartition) {
-            // Recharger les données après le retrait du camion et la mise à jour
-            await _loadLignes();
-            await _loadCamionsAffecterLigne(lignes[selectedIndexLigne!]['ligneId']);
-            await _reloadCamionsAttente();
-
-            //_showErrorMessage('Camion retiré et tonnage mis à jour avec succès.', const Color(0xFF323232));
-          } else {
-            // Remettre le camion si la répartition échoue
-            bool successReAdd = await saveDechargementCoursFromAPI(
-              veCode: veCode,
-              poidsP1: camion['poidsP1'],
-              techCoupe: camion['techCoupe'],
-              parcelle: camion['parcelle'],
-              dateHeureP1: DateTime.parse(camion['dateHeureP1']),
-              ligneLibele: lignes[selectedIndexLigne!]['libele'],
-              ligneId: lignes[selectedIndexLigne!]['ligneId'],
-
-            );
-
-            if (successReAdd) {
-              _showErrorMessage('La répartition des tas a échoué. Le camion a été remis. Connectez-vous au réseau.', const Color(0xFF323232));
-            } else {
-              _showErrorMessage('La répartition des tas a échoué et la remise du camion a également échoué. Connectez-vous au réseau.', const Color(0xFF323232));
-            }
-          }
-        } else {
-          // Remettre le camion si la mise à jour du tonnage échoue
-          bool successReAdd = await saveDechargementCoursFromAPI(
-            veCode: veCode,
-            poidsP1: camion['poidsP1'],
-            techCoupe: camion['techCoupe'],
-            parcelle: camion['parcelle'],
-            dateHeureP1: DateTime.parse(camion['dateHeureP1']),
-            ligneLibele: lignes[selectedIndexLigne!]['libele'],
-            ligneId: lignes[selectedIndexLigne!]['ligneId'],
+          bool successUpdateLigne = await updateLigneTonnageFromAPI(
+            ligneId: ligneId,
+            ligneLibele: ligneLibele,
           );
 
-          if (successReAdd) {
-            _showErrorMessage('La mise à jour du tonnage a échoué. Le camion a été remis. Connectez-vous au réseau.', const Color(0xFF323232));
+          if (successUpdateLigne) {
+            bool successRepartition = await repartirTonnageTasFromAPI(ligneId: ligneId);
+
+            if (successRepartition) {
+              await _loadLignes();
+              await _loadCamionsAffecterLigne(lignes[selectedIndexLigne!]['ligneId']);
+            } else {
+              //si la repartition du tonnage de la ligne au differents tas echou reajouter le camion
+              await _reAddCamion(camion);
+            }
           } else {
-            _showErrorMessage('La mise à jour du tonnage a échoué et la remise du camion a également échoué. Connectez-vous au réseau.', const Color(0xFF323232));
+            //si la mise a jour du tonnage echoue rajouter le camion
+            await _reAddCamion(camion);
           }
+          //on  peut recharger la liste des camions en attente après suppression
+          await _reloadCamionsAttente();
+        } else {
+          _showErrorMessage('Échec du retrait du camion. Connectez-vous au réseau.', const Color(0xFF323232));
         }
       } else {
-        _showErrorMessage('Échec du retrait du camion. Connectez-vous au réseau.', const Color(0xFF323232));
+        _showErrorMessage('Veuillez sélectionner une ligne avant de retirer un camion.', const Color(0xFF323232));
       }
+    }catch(e){
+      _showErrorMessage('Échec du retrait du camion. Connectez-vous au réseau.', const Color(0xFF323232));
+    }finally {
+      setState(() {
+        _isInCoursOfRetrait = false; // L'opération est terminée, on permet de nouveau les clics
+      });
+    }
+  }
+
+  //rajouter un camion supprimer (sera utile si la repartion des tas echou ou la mise a jour du tonnage echoue)
+  Future<void> _reAddCamion(Map<String, dynamic> camion) async {
+    final veCode = camion['veCode'];
+    final poidsP1 = camion['poidsP1'];
+    final techCoupe = camion['techCoupe'];
+    final parcelle = camion['parcelle'];
+    final dateHeureP1 = DateTime.parse(camion['dateHeureP1']);
+    final ligneLibele = lignes[selectedIndexLigne!]['libele'];
+    final ligneId = lignes[selectedIndexLigne!]['ligneId'];
+    final codeCanne = camion['TN_CODE'];
+
+    bool successReAdd = await saveDechargementCoursFromAPI(
+      veCode: veCode,
+      poidsP1: poidsP1,
+      techCoupe: techCoupe,
+      parcelle: parcelle,
+      dateHeureP1: dateHeureP1,
+      ligneLibele: ligneLibele,
+      ligneId: ligneId,
+      codeCanne: codeCanne,
+    );
+
+    if (successReAdd) {
+      _showErrorMessage('La mise à jour du tonnage a échoué. Le camion a été remis. Connectez-vous au réseau.', const Color(0xFF323232));
     } else {
-      _showErrorMessage('Veuillez sélectionner une ligne avant de retirer un camion.', const Color(0xFF323232));
+      _showErrorMessage('La mise à jour du tonnage a échoué et la remise du camion a également échoué. Connectez-vous au réseau.', const Color(0xFF323232));
     }
   }
 

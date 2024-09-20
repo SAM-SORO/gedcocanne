@@ -11,19 +11,23 @@ import 'package:overlay_support/overlay_support.dart';
 class TableCanne extends StatefulWidget {
   //doit permettre de faire la recuperation des P2 et la synchro ainsi que le reset du timer dans le cas du pull to refresh
   final void Function() updateP2AndSyncAndResetTimer;
-
   //réçoit la liste des camions en attente de son papa
   final List<Map<String, String>> camionsAttente;
   //callback pour informer le parent lorsque la liste est modifier
   final Function(List<Map<String, String>>) onCamionsAttenteUpdated;
+  //fonction pour recharger les camion en attente
   final Future<void> Function() chargerCamionsAttente;
+  //booleen pour etre informer de si le chargement des camions en attente est terminer ou pas
+  final bool isLoadingCamonAttente;
+  
 
   const TableCanne({
     super.key, 
     required this.updateP2AndSyncAndResetTimer, 
-    required this.camionsAttente, 
     required this.onCamionsAttenteUpdated, 
-    required this.chargerCamionsAttente
+    required this.chargerCamionsAttente,
+    required this.camionsAttente, 
+    required this.isLoadingCamonAttente,
   });
 
   @override
@@ -35,10 +39,13 @@ class _TableCanneState extends State<TableCanne> {
   //List<Map<String, String>> camionsAttente = [];
   // Liste des camions déjà déchargés
   List<Map<String, dynamic>> camionsDechargerTable = [];
-  // Booléen pour suivre si le chargement des camions en attente est en cours ou pas
-  final bool _isLoading = false;
+
+  // Booléen pour suivre si le chargement des camions decharger dans les derniere heures est en cours ou pas
+  late bool _isLoadingCamionDechager = true;
   
   Timer? _timer; // Variable pour stocker le Timer
+
+  late String agentConnecter;
 
   // dictionnaire pour obtenir le nom associer au PN_CODE (type de canne)
   final Map<String, String> dictionnaire = {
@@ -46,8 +53,6 @@ class _TableCanneState extends State<TableCanne> {
     '2': 'CV',
     '3': 'CP'
   };
-
-  
   
 
   //variable pour suiivre si une synchronisation est en cour ou pas avant de proceder a la mise a jour du POISP2 parceque 
@@ -70,6 +75,7 @@ class _TableCanneState extends State<TableCanne> {
   @override
   Widget build(BuildContext context) {
     int nombreDeCamionEnAttente  = widget.camionsAttente.length ;
+
     return Scaffold(
       body: Row(
         children: <Widget>[
@@ -87,7 +93,7 @@ class _TableCanneState extends State<TableCanne> {
                     ),
                   ),
                   Expanded(
-                    child: _isLoading
+                    child: widget.isLoadingCamonAttente
                         ? const Center(child: CircularProgressIndicator()) // Afficher le CircularProgressIndicator si en chargement
                         : widget.camionsAttente.isEmpty
                             ? Center(
@@ -108,6 +114,8 @@ class _TableCanneState extends State<TableCanne> {
                                 itemBuilder: (context, index) {
                                   var camion = widget.camionsAttente[index];
                                   var datePremPeseeFormater = DateFormat('dd/MM/yyyy HH:mm:ss').format(DateTime.parse(camion['PS_DATEHEUREP1']!));
+                              
+                                  //var typeCanne = dictionnaire[camion['TN_CODE']]
                                   return Dismissible(
                                     key: Key(camion['VE_CODE']!), // Clé unique pour chaque élément
                                     direction: DismissDirection.startToEnd,
@@ -125,10 +133,43 @@ class _TableCanneState extends State<TableCanne> {
                                       padding: const EdgeInsets.only(bottom: 15),
                                       margin: const EdgeInsets.only(left: 20),
                                       child: Card(
+                                        //la couleurt du card en fonction de la technique de coupe
                                         color: camion['TN_CODE'] == '1' ? camion['PS_TECH_COUPE'] == 'RV' || camion['PS_TECH_COUPE'] == 'RB' ? const Color(0xFFF8E7E7) : Colors.white :  Colors.yellow,
                                         child: ListTile(
-                                          title: Text('${camion['VE_CODE']} ( ${camion['PS_CODE']} ) - ${dictionnaire[camion['TN_CODE']]} -  Coupe: ${camion['PS_TECH_COUPE']} ', style: GoogleFonts.poppins(fontSize: 14),),
-                                          subtitle: Text('poidsP1 : ${camion['PS_POIDSP1']} tonne, $datePremPeseeFormater', style: GoogleFonts.poppins(fontSize: 14)),
+                                          contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                                          title: RichText(
+                                            text: TextSpan(
+                                              children: [
+                                                TextSpan(
+                                                  text: '${camion['VE_CODE']} ',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '(${camion['PS_CODE']}) ',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                    fontWeight: FontWeight.bold
+                                                  ),
+                                                ),
+                                                TextSpan(
+                                                  text: '- ${camion['LIBELE_TYPECANNE']} - ${camion['PS_TECH_COUPE']}',
+                                                  style: GoogleFonts.poppins(
+                                                    fontSize: 14,
+                                                    color: Colors.black,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                          subtitle: Padding(
+                                            padding: const EdgeInsets.only(top: 8),
+                                            child: Text('poidsP1 : ${camion['PS_POIDSP1']} tonne, $datePremPeseeFormater', style: GoogleFonts.poppins(fontSize: 14)),
+                                          ),
                                           leading: const Icon(Icons.fire_truck_rounded),
                                           trailing: Checkbox(
                                             value: false,
@@ -156,7 +197,7 @@ class _TableCanneState extends State<TableCanne> {
           Expanded(
             child: RefreshIndicator(
               onRefresh: _refreshCamionDechargerTable,
-              child: _isLoading
+              child: _isLoadingCamionDechager
                   ? const Center(child: CircularProgressIndicator())
                   : Column(
                       children: <Widget>[
@@ -190,52 +231,79 @@ class _TableCanneState extends State<TableCanne> {
                                 ),
                               )
                             : ListView.builder(
-                                itemCount: camionsDechargerTable.length,
-                                itemBuilder: (context, index) {
-                                  var camion = camionsDechargerTable[index];
+                            itemCount: camionsDechargerTable.length,
+                            itemBuilder: (context, index) {
+                              var camion = camionsDechargerTable[index];
+                              final dateDecharg = DateTime.parse(camion['dateHeureDecharg']);
+                              final dateDechargFormated = DateFormat('dd/MM/yy HH:mm:ss').format(dateDecharg);
+                              
+                              // Vérification de l'autorisation : seul l'admin ou l'agent ayant effectué l'affectation peut annuler le déchargement
+                              final agentDechargement = camion['agentMatricule']?.toString();
+                              bool canCancelDechargement = agentConnecter == agentDechargement || agentConnecter == "admin";
 
-                                  final dateDecharg = DateTime.parse(camion['dateHeureDecharg']);
-                                  final dateDechargFormated = DateFormat('dd/MM/yy HH:mm:ss').format(dateDecharg);
-
-                                  return Dismissible(
-                                    key: Key(camion['veCode']),
-                                    direction: DismissDirection.endToStart,
-                                    movementDuration: const Duration(seconds: 4),
-                                      onDismissed: (direction) async {
-                                      // Appeler la fonction pour supprimer le camion
-                                      // Appeler la fonction pour supprimer le camion et attendre le résultat
-                                      bool success = await _supprimerCamionDechargerTable(camion['veCode'], camion['dateHeureDecharg']);
-                                      
-                                      // Supprimer l'élément de la liste locale si la suppression a réussi
-                                      if (success) {
-                                        setState(() {
-                                          camionsDechargerTable.removeAt(index);
-                                        });
-                                        widget.chargerCamionsAttente();
-                                      }
-                                    },
-                                    background: Container(
-                                      color: Colors.red,
-                                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                                      alignment: AlignmentDirectional.centerEnd,
-                                      child: const Icon(Icons.delete, color: Colors.white),
-                                    ),
-                                    child: Card(
-                                      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 10),
-                                      child: ListTile(
-                                        title: Text(
-                                          '${camion['veCode']} ( ${camion['parcelle']} ) - ${camion['techCoupe']}',
-                                          style: GoogleFonts.poppins(fontSize: 14),
-                                        ),
-                                        subtitle: Text(
+                              return Dismissible(
+                                key: Key(camion['veCode']),
+                                direction: DismissDirection.endToStart ,
+                                movementDuration: const Duration(seconds: 1),
+                                confirmDismiss: (direction) async {
+                                  // Vérifier l'autorisation avant de confirmer la suppression
+                                  if (!canCancelDechargement) {
+                                    // Si non autorisé, bloquer la suppression et afficher un message
+                                    _showErrorMessage('Vous n\'avez pas l\'autorisation d\'annuler ce déchargement.', const Color(0xFF323232));
+                                    return false; // Annule le geste de suppression
+                                  }
+                                  return true; // Permet la suppression si autorisé
+                                },
+                                onDismissed: (direction) async {
+                                  if (canCancelDechargement) {
+                                    // Appeler la fonction pour supprimer le camion et attendre le résultat
+                                    bool success = await _supprimerCamionDechargerTable(camion['veCode'], camion['dateHeureDecharg']);
+                                    
+                                    // Supprimer l'élément de la liste locale si la suppression a réussi
+                                    if (success) {
+                                      setState(() {
+                                        camionsDechargerTable.removeAt(index);
+                                      });
+                                      widget.chargerCamionsAttente();
+                                    }
+                                  } else {
+                                    // l'action de suppression est visuellement annulée : l'élément est réinséré dans la liste sans être retiré. Cela se fait en appelant setState() pour redessiner l'interface, mais sans supprimer l'élément.
+                                    // setState(() {
+                                    //   // On force la réinsertion de l'élément sans le retirer
+                                    // });                      
+                                  }
+                                },
+                                background: Container(
+                                  color: Colors.red,
+                                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                                  alignment: AlignmentDirectional.centerEnd,
+                                  child: const Icon(Icons.delete, color: Colors.white),
+                                ),
+                                child: Container(
+                                  padding: const EdgeInsets.only(bottom: 15),
+                                  //margin: const EdgeInsets.only(left: 20),
+                                  child: Card(
+                                    margin: const EdgeInsets.symmetric(vertical: 4),
+                                    child: ListTile(
+                                      contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 16),
+                                      title: Text(
+                                        '${camion['veCode']} ( ${camion['parcelle']} ) - ${camion['libelleTypeCanne']} - ${camion['techCoupe']}',
+                                        style: GoogleFonts.poppins(fontSize: 14),
+                                      ),
+                                      subtitle: Padding(
+                                        padding: const EdgeInsets.only(top: 8),
+                                        child: Text(
                                           'poidsP1: ${camion['poidsP1']} tonnes, ${camion['poidsP2'] != null ? 'poidsP2: ${camion['poidsP2']} tonnes, ' : 'Poids Tare ${camion['poidsTare']} tonnes, '} poids Net: ${camion['poidsNet']} tonnes $dateDechargFormated',
                                           style: GoogleFonts.poppins(fontSize: 14),
                                         ),
                                       ),
                                     ),
-                                  );
-                                },
-                              ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+
                         ),
                       ],
                     ),
@@ -260,13 +328,16 @@ class _TableCanneState extends State<TableCanne> {
 
   // Fonction pour récupérer les camions déchargés sur la table a canne
   Future<void> _chargerCamionsDechargerTableDerniereHeure() async {
+    agentConnecter = (await getCurrentUserMatricule())!;
     try {
       final camions = await getCamionDechargerTableDerniereHeureFromAPI();
       
       setState(() {
         camionsDechargerTable = camions;
-  
+        _isLoadingCamionDechager = false;
       });
+      widget.updateP2AndSyncAndResetTimer();
+
     } catch (err) {
       _showErrorMessage('Le chargement des camions déchargés à  échoué. Connectez vous au réseau.', const Color(0xFF323232));
     }
@@ -302,6 +373,8 @@ class _TableCanneState extends State<TableCanne> {
       double poidsP1 = double.parse(camion['PS_POIDSP1']!);
       String techCoupe = camion['PS_TECH_COUPE']!;
       String parcelle = camion['PS_CODE']!;
+      String codeCanne = camion['TN_CODE']!;
+
       DateTime dateHeureP1 = DateTime.parse(camion['PS_DATEHEUREP1']!);
       String? matriculeAgent = await getCurrentUserMatricule();
 
@@ -323,6 +396,7 @@ class _TableCanneState extends State<TableCanne> {
         dateHeureP1: dateHeureP1,
         poidsTare: poidsTare,
         matricule: matriculeAgent!,
+        codeCanne: codeCanne
       );
 
       if (success) {

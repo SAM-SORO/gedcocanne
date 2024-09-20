@@ -16,7 +16,7 @@ String hashPassword(String password) {
 
 // Fonction pour appeler l'API d'authentification
 Future<String> authenticateUserFromAPI(String matricule, String password) async {
-  final url = Uri.parse('http://192.168.1.190:80/api/authenticate');
+  final url = Uri.parse('http://10.0.2.2:1445/api/authenticate');
 
   final hashedPassword = hashPassword(password);
 

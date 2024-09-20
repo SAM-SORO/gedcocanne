@@ -115,7 +115,7 @@ Future<Map<String, dynamic>> getAgentTopBroyageEntreDates({
   required DateTime dateDebut,
   required DateTime dateFin,
 }) async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/agentTopBroyageEntreDates');
+  final uri = Uri.parse('http://10.0.2.2:1445/api/agentTopBroyageEntreDates');
   
   final response = await http.post(
     uri,
@@ -140,7 +140,7 @@ Future<double> getTonnageCanneEntreeEntreDates({
   required DateTime dateFin,
 }) async {
   final uri = Uri.parse(
-      'http://192.168.1.190:80/api/getTonnageCanneEntreeEntreDates?dateDebut=${dateDebut.toIso8601String()}&dateFin=${dateFin.toIso8601String()}');
+      'http://10.0.2.2:1445/api/getTonnageCanneEntreeEntreDates?dateDebut=${dateDebut.toIso8601String()}&dateFin=${dateFin.toIso8601String()}');
 
   try {
     final response = await http.get(uri);
@@ -225,7 +225,7 @@ Future<double> getTonnageBroyerParTasEntreDates({
 
 // Fonction pour récupérer le tonnage total de canne entrée pour l'année en cours
 Future<double?> getTonnageCanneEntree() async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/getTonnageCanneEntree');
+  final uri = Uri.parse('http://10.0.2.2:1445/api/getTonnageCanneEntree');
 
   try {
     final response = await http.get(uri);
@@ -249,7 +249,7 @@ Future<Map<String, dynamic>?> getTopAgentFromAPI({
   required int heureDebut, // Heure de début à envoyer
   required int heureFin,   // Heure de fin à envoyer
 }) async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/agentTopBroyage'); // URL de l'API
+  final uri = Uri.parse('http://10.0.2.2:1445/api/agentTopBroyage'); // URL de l'API
 
   try {
     final response = await http.post(
@@ -291,7 +291,7 @@ Future<Map<String, dynamic>?> getMinAgentFromAPI({
   required int heureDebut, // Heure de début à envoyer
   required int heureFin,   // Heure de fin à envoyer
 }) async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/agentMinBroyage'); // URL de l'API
+  final uri = Uri.parse('http://10.0.2.2:1445/api/agentMinBroyage'); // URL de l'API
 
   try {
     final response = await http.post(
@@ -330,7 +330,7 @@ Future<Map<String, dynamic>?> getMinAgentFromAPI({
 
 //Fonction d'appel pour l'agent avec le plus de tonnage broyé sur l'année  (une autre façon de faire ne donne pas le resultat exact c'est pour juste voir la maniere de faire)
 Future<Map<String, dynamic>?> getTopAgentAnneeFromAPI() async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/agentTopBroyageAnnee'); // URL de l'API
+  final uri = Uri.parse('http://10.0.2.2:1445/api/agentTopBroyageAnnee'); // URL de l'API
 
   try {
     final response = await http.get(
@@ -365,7 +365,7 @@ Future<Map<String, dynamic>?> getTopAgentAnneeFromAPI() async {
 
 //Fonction d'appel pour l'agent avec le moins de tonnage broyé sur l'année   (une autre façon de faire ne donne pas le resultat exact c'est pour juste voir la maniere de faire)
 Future<Map<String, dynamic>?> getMinAgentAnneeFromAPI() async {
-  final uri = Uri.parse('http://192.168.1.190:80/api/agentMinBroyageAnnee'); // URL de l'API
+  final uri = Uri.parse('http://10.0.2.2:1445/api/agentMinBroyageAnnee'); // URL de l'API
 
   try {
     final response = await http.get(

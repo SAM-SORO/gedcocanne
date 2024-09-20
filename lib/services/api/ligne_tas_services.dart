@@ -15,7 +15,7 @@ final logger = Logger();
 Future<int> getLigneCountFromAPI() async {
   try {
     final response = await http.get(
-      Uri.parse('http://192.168.1.190:80/api/getLigneCount'),
+      Uri.parse('http://10.0.2.2:1445/api/getLigneCount'),
       headers: {'Content-Type': 'application/json'},
     );
 
@@ -36,7 +36,7 @@ Future<int> getLigneCountFromAPI() async {
 // Récupérer toutes les lignes depuis l'API
 Future<List<Map<String, dynamic>>> getAllLigneFromAPI() async {
 
-  const String url = 'http://192.168.1.190:80/api/getLignes';
+  const String url = 'http://10.0.2.2:1445/api/getLignes';
   
   try {
     final response = await http.get(Uri.parse(url), headers: {
@@ -61,7 +61,7 @@ Future<List<Map<String, dynamic>>> getAllLigneFromAPI() async {
 
 // Fonction pour vérifier si la suppression de la ligne est acceptable
 Future<bool> canDeleteLigneFromAPI(String ligneLibele) async {
-  final String url = 'http://192.168.1.190:80/api/canDeleteLigne/$ligneLibele';
+  final String url = 'http://10.0.2.2:1445/api/canDeleteLigne/$ligneLibele';
 
   try {
     final response = await http.get(Uri.parse(url));
@@ -81,7 +81,7 @@ Future<bool> canDeleteLigneFromAPI(String ligneLibele) async {
 
 //supprimer une ligne
 Future<bool> deleteLigneFromAPI(int ligneId) async {
-  final String url = 'http://192.168.1.190:80/api/deleteLigne/$ligneId';
+  final String url = 'http://10.0.2.2:1445/api/deleteLigne/$ligneId';
 
   try {
     final response = await http.delete(Uri.parse(url));
@@ -110,7 +110,7 @@ Future<bool> createLigneFromAPI(String ligneLibele) async {
     }
     
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/creerLigne'), 
+      Uri.parse('http://10.0.2.2:1445/api/creerLigne'), 
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },
@@ -139,7 +139,7 @@ Future<bool> createLigneFromAPI(String ligneLibele) async {
 Future<bool> updateStatutVerouillageFromAPI({
   required int ligneId,
 }) async {
-  const String url = 'http://192.168.1.190:80/api/updateStatutVerouillage'; // Remplacez par l'URL correcte
+  const String url = 'http://10.0.2.2:1445/api/updateStatutVerouillage'; // Remplacez par l'URL correcte
 
   try {
     final response = await http.put(
@@ -171,7 +171,7 @@ Future<bool> updateStatutVerouillageFromAPI({
 Future<bool> deverouillerLigneFromAPI(int ligneId, String ligneLibele) async {
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/deverouillerLigne'),
+      Uri.parse('http://10.0.2.2:1445/api/deverouillerLigne'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({'ligneId': ligneId, 'ligneLibele' : ligneLibele}),
     );
@@ -204,7 +204,7 @@ Future<bool> updateLigneTonnageFromAPI({
     //logger.d('Données envoyées pour mise à jour du tonnage de la ligne: $data');
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/updateLigneTonnage'),
+      Uri.parse('http://10.0.2.2:1445/api/updateLigneTonnage'),
       body: json.encode(data),
       headers: {'Content-Type': 'application/json'},
     );
@@ -239,7 +239,7 @@ Future<bool> repartirTonnageTasFromAPI({
     //logger.d('Données envoyées pour répartition du tonnage entre les tas: $data');
 
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/repartirTonnageTas'),
+      Uri.parse('http://10.0.2.2:1445/api/repartirTonnageTas'),
       body: json.encode(data),
       headers: {'Content-Type': 'application/json'},
     );

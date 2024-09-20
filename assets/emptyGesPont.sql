@@ -1,4 +1,4 @@
--- Sélectionner la base de données 'gedcocanne'
+-- Sï¿½lectionner la base de donnï¿½es 'gedcocanne'
 USE DB_GESPONT_FK;
 GO
 
@@ -9,9 +9,21 @@ BEGIN
 END
 GO
 
+
+
 -- Suppression de la table F_PESEE
 IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'F_PESEE')
 BEGIN
     DROP TABLE F_PESEE;
+END
+GO
+
+
+
+
+-- Suppression de la table F_PESEE
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'F_TYPECANNES')
+BEGIN
+    DROP TABLE F_TYPECANNE;
 END
 GO

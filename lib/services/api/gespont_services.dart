@@ -9,8 +9,8 @@ final logger = Logger();
 Future<List<Map<String, String>>> getCamionAttenteFromAPI() async {
   try {
     final response = await http
-        .get(Uri.parse('http://192.168.1.190:80/api/camionsEnAttente'))
-        .timeout(const Duration(minutes: 5)); // Timeout après 5 minutes
+        .get(Uri.parse('http://10.0.2.2:1445/api/camionsEnAttente'))
+        .timeout(const Duration(seconds: 10)); // Timeout après 5 seconds
 
     if (response.statusCode == 200) {
       final List<dynamic> data = json.decode(response.body);
@@ -18,6 +18,7 @@ Future<List<Map<String, String>>> getCamionAttenteFromAPI() async {
         'VE_CODE': camion['VE_CODE']?.toString() ?? '',
         'PR_CODE': camion['PR_CODE']?.toString() ?? '',
         'TN_CODE': camion['TN_CODE']?.toString() ?? '',
+        'LIBELE_TYPECANNE': camion['TN_LIBELE']?.toString() ?? '',
         'PS_CODE': camion['PS_CODE']?.toString() ?? '',
         'PS_TECH_COUPE': camion['PS_TECH_COUPE']?.toString() ?? '',
         'PS_POIDSP1': camion['PS_POIDSP1']?.toString() ?? '',
@@ -32,13 +33,35 @@ Future<List<Map<String, String>>> getCamionAttenteFromAPI() async {
   }
 }
 
+// Récupérer le libellé du type de canne à partir du codeCanne
+// Future<String> getTypeCanneLibele(String codeCanne) async {
+//   try {
+//     final response = await http.post(
+//       Uri.parse('http://10.0.2.2:1445/api/getTypeCanne'),
+//       headers: {'Content-Type': 'application/json'},
+//       body: json.encode({'codeCanne': codeCanne}),
+//     ).timeout(const Duration(seconds: 5)); // Timeout après 5 seconds
+
+//     if (response.statusCode == 200) {
+//       final Map<String, dynamic> data = json.decode(response.body);
+//       return data['libele'] ?? '';
+//     } else {
+//       throw Exception('Failed to load type de canne libelle');
+//     }
+//   } catch (e) {
+//     //logger.e('Error: $e');
+//     throw Exception('Failed to load type de canne libelle: $e');
+//   }
+// }
+
+
 
 // Fonction pour récupérer le poids de la dernière tare depuis l'API
 Future<double?> recupererPoidsTare({
   required String veCode,
 }) async {
   try {
-    final uri = Uri.parse('http://192.168.1.190:80/api/getPoidsTare?veCode=$veCode');
+    final uri = Uri.parse('http://10.0.2.2:1445/api/getPoidsTare?veCode=$veCode');
     final response = await http.get(uri);
 
     if (response.statusCode == 200) {

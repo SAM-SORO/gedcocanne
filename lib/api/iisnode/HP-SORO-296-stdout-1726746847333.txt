@@ -1,0 +1,3 @@
+Serveur en cours d'exécution sur le port \\.\pipe\2a33ffda-09fe-46b7-aec3-f8bae84270bc
+Connected to gedcocanne
+Connected to gespont

@@ -17,7 +17,7 @@ final logger = Logger();
 Future<bool> sendToApiSyncAgent(List<Map<String, dynamic>> agents) async {
   try {
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/syncAgents'), // Remplacez par l'URL de votre API
+      Uri.parse('http://10.0.2.2:1445/api/syncAgents'), // Remplacez par l'URL de votre API
       headers: <String, String>{
         'Content-Type': 'application/json; charset=UTF-8',
       },

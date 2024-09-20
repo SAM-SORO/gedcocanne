@@ -29,7 +29,8 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   int _currentIndexValue = 0;
-  bool _isLoading = true;  //variable pour suivre s'il y'a chargement permettra d'utiliser un circular indicator lorsque les verifications seront en cours
+  bool _isLoading = true;  //afin d'indiquer que le chargement est en cours chargement permettra d'utiliser un circular indicator lorsque les verifications seront en cours
+  bool _isLoadingCamionAttente = true;
   Timer? _timerSync; // minuter pour la frequence de synchronisation
   Timer? _timerUpdating; //minuteur pour la frequence de recuperation du poids de la deuxieme pese
   bool _isSwitched = false; // permet de suivre si le switch du filtre des camions en attente  a ete activer
@@ -42,11 +43,6 @@ class _HomeState extends State<Home> {
     setState(() {
       _isSwitched = value;
     });
-
-    //comment trouver l'instance d'une classe
-    // Trouver l'instance de CoursCanne
-    // final coursCanneState = context.findAncestorStateOfType<CoursCanneState>();
-    // coursCanneState?.refreshCamionsAttente(); // Appel à la méthode publique
   }
 
   //late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription; // Abonnement mis à jour
@@ -146,18 +142,20 @@ class _HomeState extends State<Home> {
   List<Widget> get screenList => [
     TableCanne(
       updateP2AndSyncAndResetTimer: _resetSyncAndUpdatingP2Timer,
-      camionsAttente: camionsAttente,
       onCamionsAttenteUpdated: _updateCamionsAttente,  // Ajouter le callback pour mise à jour
       chargerCamionsAttente: _chargerCamionsAttente, // Passer la fonction ici
+      camionsAttente: camionsAttente, // camions en attentes
+      isLoadingCamonAttente: _isLoadingCamionAttente, // booleen pour lui permettre de savoir si le chargement des camions en attente est terminer ou pas
     ),
     
     CoursCanne(
       updateP2AndSyncAndResetTimer: _resetSyncAndUpdatingP2Timer,
-      isSwitched: _isSwitched,
-      camionsAttente: camionsAttente,
-      onCamionsAttenteUpdated: _onCamionSupprime,  // Ajouter le callback pour mise à jour
-      chargerCamionsAttente: _chargerCamionsAttente, // Passer la fonction ici
-      
+      onCamionsAttenteSupprimer: _onCamionSupprime,  // Ajouter le callback pour mlui permettre d'informer le parent que le camion a ete supprimer de la liste des camion en attente
+      chargerCamionsAttente: _chargerCamionsAttente, // lui donner la fonctio  pour recharger les camions en attente
+      isSwitched: _isSwitched, // booleen pour lui permettre d'etre informer
+      camionsAttente: camionsAttente, //camions en attente
+      isLoadingCamonAttente: _isLoadingCamionAttente, // booleen pour lui permettre de savoir si le chargement des camions en attente est terminer ou pas
+       
     ),
   ];
 
@@ -242,10 +240,11 @@ class _HomeState extends State<Home> {
       if (mounted) {  
         setState(() {  
           camionsAttente = filteredCamionsAttente; // Met à jour la liste des camions  
-          _isLoading = false; // Mise à jour de l'état de chargement  
+          _isLoadingCamionAttente = false; // on a fini  de charger les camions en attente
         });  
       }
     } catch (e) {
+      // s'il y'a un soucis arreter l'indicateur de chargement pour lui afficher le message
       // Vérifier si le widget est monté avant d'appeler setState
       if (mounted) {
         setState(() {   
@@ -305,12 +304,9 @@ class _HomeState extends State<Home> {
   //verifier si l'utilisateur a une session ou pas
   Future<void> _checkUserConnection() async {
     
-    setState(() {
-      _isLoading = false;
-    });
-
     bool connected = await userIsInSession();
     
+    //s'il n'a pas de session qu'il se connecte
     if (!connected) {
       // Annuler les timers de synchronisation avant de rediriger l'utilisateur vers la page de connexion
       _timerSync?.cancel();
@@ -325,13 +321,18 @@ class _HomeState extends State<Home> {
         );
       }
     } else {
-      _chargerCamionsAttente();
       // Si le widget est encore monté, mettre à jour l'état
       if (mounted) {
         setState(() {
+          // on a fini de verifier s'il a une session il sera enoyer sur la page de login 
+          //on est ici ce qui veut dire que la verification est finit on sera sur l'onglet table a canne 
+          //donc arreter le corcular indicator pour dire qu'on a terminer le chargement
           _isLoading = false;
         });
       }
+      //on va donc charger les camions en attente. car il faudra envoyer ça à l'onglet table a canne pour l'affichage
+      _chargerCamionsAttente();
+      
     }
   }
 

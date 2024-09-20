@@ -9,7 +9,7 @@ final logger = Logger();
 Future<List<Map<String, dynamic>>> getCamionDechargerTableFromAPI() async {
   try {
     final response = await http
-        .get(Uri.parse('http://192.168.1.190:80/api/camionsDechargerTable'))
+        .get(Uri.parse('http://10.0.2.2:1445/api/camionsDechargerTable'))
         .timeout(const Duration(minutes: 10)); // Timeout après 10 secondes
 
     if (response.statusCode == 200) {
@@ -29,7 +29,7 @@ Future<List<Map<String, dynamic>>> getCamionDechargerTableFromAPI() async {
 
 //recuperer les camions decharger sur la table à canne dans les dernière heure
 Future<List<Map<String, dynamic>>> getCamionDechargerTableDerniereHeureFromAPI() async {
-  const String url = 'http://192.168.1.190:80/api/camionsDechargerTableDerniereHeure';
+  const String url = 'http://10.0.2.2:1445/api/camionsDechargerTableDerniereHeure';
   
   try {
     final response = await http.get(Uri.parse(url), headers: {
@@ -62,6 +62,7 @@ Future<bool> saveDechargementTableFromAPI({
   required DateTime dateHeureP1,
   required double poidsTare,
   required String matricule,
+  required String codeCanne,
 }) async {
   try {
     // Préparation des données à envoyer
@@ -73,11 +74,12 @@ Future<bool> saveDechargementTableFromAPI({
       'dateHeureP1': dateHeureP1.toIso8601String(),
       'poidsTare': poidsTare,
       'matriculeAgent': matricule, // Correspond à agentMatricule dans la base de données
+      'codeCanne' : codeCanne,
     };
 
     // Appel API
     final response = await http.post(
-      Uri.parse('http://192.168.1.190:80/api/enregistrerDechargementTable'),
+      Uri.parse('http://10.0.2.2:1445/api/enregistrerDechargementTable'),
       body: json.encode(data),
       headers: {'Content-Type': 'application/json'},
     );
@@ -97,7 +99,7 @@ Future<bool> saveDechargementTableFromAPI({
 Future<bool> deleteCamionDechargerTableFromAPI(String veCode, String dateHeureDecharg) async {
   try {
     final response = await http.delete(
-      Uri.parse('http://192.168.1.190:80/api/deleteCamionDechargerTable'),
+      Uri.parse('http://10.0.2.2:1445/api/deleteCamionDechargerTable'),
       headers: {'Content-Type': 'application/json'},
       body: json.encode({
         'veCode': veCode,

@@ -1,4 +1,4 @@
--- Sélectionner la base de données 'gedcocanne'
+-- Sï¿½lectionner la base de donnï¿½es 'gedcocanne'
 USE gedcocanne;
 GO
 
@@ -38,8 +38,11 @@ BEGIN
 END
 GO
 
+
+
+
 -- Suppression de la table TAS
-IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'TAS')
+IF EXISTS (SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME = 'TASS')
 BEGIN
     DROP TABLE TAS;
 END
